@@ -1,0 +1,668 @@
+specification:
+  title: L4 Protection Framework Requirements and Abstract API Specification
+  language: Zig
+  product_type: reusable framework library
+  normative_terms:
+  - MUST
+  - MUST_NOT
+  - SHOULD
+  - SHOULD_NOT
+  - MAY
+  requirement_count: 97
+principles:
+- id: P-01
+  statement: The product is a library framework, not a mandatory appliance or controller.
+- id: P-02
+  statement: Native Zig processors are the fundamental extension mechanism.
+- id: P-03
+  statement: Packet, update, and observability responsibilities are logically distinct but not required to be separate
+    processes.
+- id: P-04
+  statement: Per-packet decisions use local policy and state.
+- id: P-05
+  statement: Stable packet and lifecycle semantics take priority over universal genericity.
+- id: P-06
+  statement: Optional execution technologies remain optional modules.
+requirements:
+- id: FR-COMP-001
+  area: composition
+  level: MUST
+  minimum_phase: 1
+  statement: The framework MUST be consumable as a Zig library.
+  source: 02-functional-requirements.md:5
+- id: FR-COMP-002
+  area: composition
+  level: MUST
+  minimum_phase: 1
+  statement: An application MUST be able to select the set and order of packet processors.
+  source: 02-functional-requirements.md:7
+- id: FR-COMP-003
+  area: composition
+  level: MUST_NOT
+  minimum_phase: 1
+  statement: The framework MUST NOT require a universal dynamic plugin ABI for statically linked applications.
+  source: 02-functional-requirements.md:9
+- id: FR-COMP-004
+  area: composition
+  level: MAY
+  minimum_phase: 5
+  statement: The framework MAY additionally support runtime-loaded native extensions through a separately versioned
+    ABI.
+  source: 02-functional-requirements.md:11
+- id: FR-COMP-005
+  area: composition
+  level: MUST
+  minimum_phase: 5
+  statement: Optional standard processors MUST use the same processor contract available to application-defined
+    native processors.
+  source: 02-functional-requirements.md:13
+- id: FR-COMP-006
+  area: composition
+  level: MUST_NOT
+  minimum_phase: 5
+  statement: The core framework MUST NOT contain closed enumerations of supported execution technologies such as
+    table, BPF, or WebAssembly executors.
+  source: 02-functional-requirements.md:15
+- id: FR-PKT-001
+  area: packet_processing
+  level: MUST
+  minimum_phase: 1
+  statement: The framework MUST expose packets to processors in batches.
+  source: 02-functional-requirements.md:19
+- id: FR-PKT-002
+  area: packet_processing
+  level: MUST
+  minimum_phase: 1
+  statement: A batch MUST preserve packet order as received from its input queue unless a processor explicitly changes
+    routing or ordering.
+  source: 02-functional-requirements.md:21
+- id: FR-PKT-003
+  area: packet_processing
+  level: MUST
+  minimum_phase: 1
+  statement: A batch MUST identify its input origin sufficiently for processors to distinguish configured inputs
+    and queues.
+  source: 02-functional-requirements.md:23
+- id: FR-PKT-004
+  area: packet_processing
+  level: MUST
+  minimum_phase: 1
+  statement: The framework MUST process a partial batch without waiting for a configured maximum batch size.
+  source: 02-functional-requirements.md:25
+- id: FR-PKT-005
+  area: packet_processing
+  level: MUST_NOT
+  minimum_phase: 1
+  statement: The framework MUST NOT imply that packets in a batch belong to the same flow or rule class.
+  source: 02-functional-requirements.md:27
+- id: FR-PKT-006
+  area: packet_processing
+  level: MUST
+  minimum_phase: 1
+  statement: A processor MUST be able to inspect packet bytes and framework metadata.
+  source: 02-functional-requirements.md:29
+- id: FR-PKT-007
+  area: packet_processing
+  level: MAY
+  minimum_phase: 1
+  statement: A processor MAY be granted mutation capabilities by the application and framework configuration.
+  source: 02-functional-requirements.md:31
+- id: FR-PKT-008
+  area: packet_processing
+  level: SHOULD
+  minimum_phase: 1
+  statement: Packet mutation capability SHOULD be narrower than unrestricted writable access for ordinary processors.
+  source: 02-functional-requirements.md:33
+- id: FR-PKT-009
+  area: packet_processing
+  level: MAY
+  minimum_phase: 1
+  statement: Trusted processors MAY receive unrestricted packet access where required.
+  source: 02-functional-requirements.md:35
+- id: FR-PKT-010
+  area: packet_processing
+  level: MUST
+  minimum_phase: 1
+  statement: Processors MUST be able to mark subsets of a batch with dispositions without forcing immediate per-packet
+    callbacks.
+  source: 02-functional-requirements.md:37
+- id: FR-PKT-011
+  area: packet_processing
+  level: MUST
+  minimum_phase: 1
+  statement: The framework MUST define ownership of packets that are dropped, transmitted, redirected, retained,
+    or left active.
+  source: 02-functional-requirements.md:39
+- id: FR-PKT-012
+  area: packet_processing
+  level: MUST_NOT
+  minimum_phase: 1
+  statement: A processor MUST NOT retain a packet or batch reference beyond the lifetime granted by the framework
+    unless it explicitly transfers ownership through a framework-supported mechanism.
+  source: 02-functional-requirements.md:41
+- id: FR-PKT-013
+  area: packet_processing
+  level: MUST
+  minimum_phase: 1
+  statement: The framework MUST support one or more configured packet outputs.
+  source: 02-functional-requirements.md:43
+- id: FR-PKT-014
+  area: packet_processing
+  level: MUST
+  minimum_phase: 1
+  statement: The framework MUST support run-to-completion processing as a baseline execution model.
+  source: 02-functional-requirements.md:45
+- id: FR-PKT-015
+  area: packet_processing
+  level: MAY
+  minimum_phase: 1
+  statement: Alternative execution models MAY be added if they preserve public processor semantics.
+  source: 02-functional-requirements.md:47
+- id: FR-PROC-001
+  area: processor_lifecycle
+  level: MUST
+  minimum_phase: 1
+  statement: Every configurable processor MUST separate configuration preparation from packet-time execution.
+  source: 02-functional-requirements.md:51
+- id: FR-PROC-002
+  area: processor_lifecycle
+  level: MUST
+  minimum_phase: 1
+  statement: Configuration preparation MUST be callable outside packet workers.
+  source: 02-functional-requirements.md:53
+- id: FR-PROC-003
+  area: processor_lifecycle
+  level: MAY
+  minimum_phase: 1
+  statement: Configuration preparation MAY allocate, parse, compile, perform local I/O, and return detailed errors.
+  source: 02-functional-requirements.md:55
+- id: FR-PROC-004
+  area: processor_lifecycle
+  level: MUST
+  minimum_phase: 1
+  statement: Packet-time execution MUST obey packet-path constraints defined in this specification.
+  source: 02-functional-requirements.md:57
+- id: FR-PROC-005
+  area: processor_lifecycle
+  level: MUST
+  minimum_phase: 1
+  statement: A processor MUST be able to create worker-local state from prepared configuration.
+  source: 02-functional-requirements.md:59
+- id: FR-PROC-006
+  area: processor_lifecycle
+  level: MUST
+  minimum_phase: 1
+  statement: A processor MUST provide deterministic cleanup for prepared and worker-local state.
+  source: 02-functional-requirements.md:61
+- id: FR-PROC-007
+  area: processor_lifecycle
+  level: MUST
+  minimum_phase: 1
+  statement: The framework MUST define ordering between processor preparation, worker instantiation, activation,
+    retirement, and destruction.
+  source: 02-functional-requirements.md:63
+- id: FR-PROC-008
+  area: processor_lifecycle
+  level: MUST
+  minimum_phase: 1
+  statement: A processor MUST be able to declare resource requirements before activation.
+  source: 02-functional-requirements.md:65
+- id: FR-PROC-009
+  area: processor_lifecycle
+  level: MUST
+  minimum_phase: 1
+  statement: Activation MUST fail before publication when declared mandatory resources cannot be satisfied.
+  source: 02-functional-requirements.md:67
+- id: FR-SRC-001
+  area: configuration_sources
+  level: MUST
+  minimum_phase: 2
+  statement: Configuration acquisition MUST be independent from configuration interpretation.
+  source: 02-functional-requirements.md:71
+- id: FR-SRC-002
+  area: configuration_sources
+  level: MUST
+  minimum_phase: 2
+  statement: A configuration source MUST be able to emit versioned artifacts.
+  source: 02-functional-requirements.md:73
+- id: FR-SRC-003
+  area: configuration_sources
+  level: MUST
+  minimum_phase: 2
+  statement: Artifacts MUST carry enough identity to detect stale, duplicated, or out-of-order updates when the
+    application requests such enforcement.
+  source: 02-functional-requirements.md:75
+- id: FR-SRC-004
+  area: configuration_sources
+  level: MAY
+  minimum_phase: 2
+  statement: Sources MAY block, allocate, retry, and use external I/O because they operate outside packet workers.
+  source: 02-functional-requirements.md:77
+- id: FR-SRC-005
+  area: configuration_sources
+  level: MUST
+  minimum_phase: 2
+  statement: The framework MUST allow an application to supply artifacts directly without using a source abstraction.
+  source: 02-functional-requirements.md:79
+- id: FR-SRC-006
+  area: configuration_sources
+  level: MAY
+  minimum_phase: 2
+  statement: Standard source modules MAY include static, file, watched-file, stream, or remote sources, but none
+    is mandatory.
+  source: 02-functional-requirements.md:81
+- id: FR-UPD-001
+  area: updates
+  level: MUST
+  minimum_phase: 2
+  statement: The framework MUST prepare an update fully before making it visible to packet workers.
+  source: 02-functional-requirements.md:85
+- id: FR-UPD-002
+  area: updates
+  level: MUST
+  minimum_phase: 2
+  statement: Activation MUST publish a complete generation atomically from the perspective of each worker.
+  source: 02-functional-requirements.md:87
+- id: FR-UPD-003
+  area: updates
+  level: MUST_NOT
+  minimum_phase: 2
+  statement: A worker MUST NOT observe a mixture of incompatible processor configurations from two generations.
+  source: 02-functional-requirements.md:89
+- id: FR-UPD-004
+  area: updates
+  level: MAY
+  minimum_phase: 2
+  statement: Workers MAY begin using a generation at different safe boundaries, provided each individual batch is
+    processed under a coherent generation.
+  source: 02-functional-requirements.md:91
+- id: FR-UPD-005
+  area: updates
+  level: MUST
+  minimum_phase: 2
+  statement: Failed preparation MUST leave the active generation unchanged.
+  source: 02-functional-requirements.md:93
+- id: FR-UPD-006
+  area: updates
+  level: MUST
+  minimum_phase: 2
+  statement: Failed activation MUST leave either the previous generation active or produce a clearly reported fatal
+    runtime state; partial silent activation is forbidden.
+  source: 02-functional-requirements.md:95
+- id: FR-UPD-007
+  area: updates
+  level: MUST
+  minimum_phase: 2
+  statement: The framework MUST delay destruction of a retired generation until no worker can reference it.
+  source: 02-functional-requirements.md:97
+- id: FR-UPD-008
+  area: updates
+  level: SHOULD
+  minimum_phase: 2
+  statement: The framework SHOULD support activation rollback to a retained compatible generation.
+  source: 02-functional-requirements.md:99
+- id: FR-UPD-009
+  area: updates
+  level: MUST
+  minimum_phase: 2
+  statement: The application MUST be able to select behavior for existing state when a new generation becomes active,
+    within capabilities exposed by processors.
+  source: 02-functional-requirements.md:101
+- id: FR-UPD-010
+  area: updates
+  level: MUST
+  minimum_phase: 2
+  statement: The framework MUST expose generation identity and update status to observability APIs.
+  source: 02-functional-requirements.md:103
+- id: FR-EXT-001
+  area: extensions
+  level: MAY
+  minimum_phase: 1
+  statement: Native Zig processors are the primary extension mechanism.
+  source: 02-functional-requirements.md:107
+- id: FR-EXT-002
+  area: extensions
+  level: MUST
+  minimum_phase: 5
+  statement: An optional executor, including an expression engine, table engine, BPF runtime, or WebAssembly runtime,
+    MUST be implementable as a processor module.
+  source: 02-functional-requirements.md:109
+- id: FR-EXT-003
+  area: extensions
+  level: MUST_NOT
+  minimum_phase: 5
+  statement: Optional executors MUST NOT require changes to packet-runtime semantics.
+  source: 02-functional-requirements.md:111
+- id: FR-EXT-004
+  area: extensions
+  level: MUST
+  minimum_phase: 5
+  statement: Optional executors MUST define their own artifact validation, preparation, resource limits, and worker
+    instantiation.
+  source: 02-functional-requirements.md:113
+- id: FR-EXT-005
+  area: extensions
+  level: MUST_NOT
+  minimum_phase: 5
+  statement: Optional executors MUST expose bounded failure behavior and MUST NOT perform remote per-packet execution
+    unless an application explicitly constructs such behavior outside normal conformance.
+  source: 02-functional-requirements.md:115
+- id: FR-EXT-006
+  area: extensions
+  level: SHOULD
+  minimum_phase: 5
+  statement: Standard optional executors SHOULD serve as reference implementations of the public processor contract.
+  source: 02-functional-requirements.md:117
+- id: FR-STATE-001
+  area: state
+  level: MUST
+  minimum_phase: 4
+  statement: The framework MUST permit processors to maintain worker-local mutable state.
+  source: 02-functional-requirements.md:121
+- id: FR-STATE-002
+  area: state
+  level: MAY
+  minimum_phase: 4
+  statement: The framework MAY expose reusable bounded state facilities.
+  source: 02-functional-requirements.md:123
+- id: FR-STATE-003
+  area: state
+  level: MUST
+  minimum_phase: 4
+  statement: Reusable state facilities MUST define capacity, ownership, lifetime, and exhaustion behavior.
+  source: 02-functional-requirements.md:125
+- id: FR-STATE-004
+  area: state
+  level: SHOULD
+  minimum_phase: 4
+  statement: Shared mutable state in the packet path SHOULD be avoided unless the processor explicitly accepts the
+    synchronization cost.
+  source: 02-functional-requirements.md:127
+- id: FR-STATE-005
+  area: state
+  level: MUST
+  minimum_phase: 4
+  statement: State migration or retention across generations MUST be explicit.
+  source: 02-functional-requirements.md:129
+- id: FR-STATE-006
+  area: state
+  level: MUST_NOT
+  minimum_phase: 4
+  statement: The framework MUST NOT silently reinterpret processor state under a new configuration generation.
+  source: 02-functional-requirements.md:131
+- id: FR-OBS-001
+  area: observability
+  level: MUST
+  minimum_phase: 1
+  statement: Packet workers MUST be able to update local metrics without calling exporters.
+  source: 02-functional-requirements.md:135
+- id: FR-OBS-002
+  area: observability
+  level: MUST
+  minimum_phase: 1
+  statement: The framework MUST expose local metric snapshots.
+  source: 02-functional-requirements.md:137
+- id: FR-OBS-003
+  area: observability
+  level: MUST
+  minimum_phase: 2
+  statement: Exporters MUST consume snapshots outside packet workers.
+  source: 02-functional-requirements.md:139
+- id: FR-OBS-004
+  area: observability
+  level: MUST
+  minimum_phase: 2
+  statement: Detailed events MUST use bounded queues or an equivalent bounded asynchronous mechanism.
+  source: 02-functional-requirements.md:141
+- id: FR-OBS-005
+  area: observability
+  level: MUST_NOT
+  minimum_phase: 2
+  statement: Packet workers MUST NOT block waiting for an event consumer.
+  source: 02-functional-requirements.md:143
+- id: FR-OBS-006
+  area: observability
+  level: MUST
+  minimum_phase: 2
+  statement: Event overflow behavior MUST be explicit and observable.
+  source: 02-functional-requirements.md:145
+- id: FR-OBS-007
+  area: observability
+  level: MUST
+  minimum_phase: 1
+  statement: The framework MUST distinguish bounded metrics from high-cardinality events.
+  source: 02-functional-requirements.md:147
+- id: FR-OBS-008
+  area: observability
+  level: MUST
+  minimum_phase: 2
+  statement: Application-defined processors MUST be able to register bounded metrics and event schemas.
+  source: 02-functional-requirements.md:149
+- id: FR-OBS-009
+  area: observability
+  level: MUST
+  minimum_phase: 1
+  statement: The framework MUST expose core runtime health measurements independent of processors.
+  source: 02-functional-requirements.md:151
+- id: FR-TEST-001
+  area: testing
+  level: MUST
+  minimum_phase: 1
+  statement: The framework MUST make processors testable without live production traffic.
+  source: 02-functional-requirements.md:155
+- id: FR-TEST-002
+  area: testing
+  level: MUST
+  minimum_phase: 1
+  statement: A test harness MUST be able to submit synthetic packets or captured packet sequences.
+  source: 02-functional-requirements.md:157
+- id: FR-TEST-003
+  area: testing
+  level: MUST
+  minimum_phase: 1
+  statement: The test harness MUST expose resulting packet dispositions and mutations.
+  source: 02-functional-requirements.md:159
+- id: FR-TEST-004
+  area: testing
+  level: MUST
+  minimum_phase: 2
+  statement: Update preparation and activation behavior MUST be testable deterministically.
+  source: 02-functional-requirements.md:161
+- id: FR-TEST-005
+  area: testing
+  level: SHOULD
+  minimum_phase: 1
+  statement: The framework SHOULD support an explanation or trace facility for processors that can provide one.
+  source: 02-functional-requirements.md:163
+- id: FR-TEST-006
+  area: testing
+  level: MAY
+  minimum_phase: 1
+  statement: Diagnostic facilities MAY allocate and execute outside packet-path constraints.
+  source: 02-functional-requirements.md:165
+- id: PL-EXP-001
+  area: policy_expressions
+  level: MUST
+  minimum_phase: 3
+  statement: A match expression MUST support Boolean composition using conjunction, disjunction, negation, and grouping.
+  source: 04-policy-module-requirements.md:13
+- id: PL-EXP-002
+  area: policy_expressions
+  level: MUST
+  minimum_phase: 3
+  statement: A match expression MUST support typed comparisons.
+  source: 04-policy-module-requirements.md:15
+- id: PL-EXP-003
+  area: policy_expressions
+  level: MUST
+  minimum_phase: 3
+  statement: A match expression MUST support membership in typed sets.
+  source: 04-policy-module-requirements.md:17
+- id: PL-EXP-004
+  area: policy_expressions
+  level: SHOULD
+  minimum_phase: 3
+  statement: A match expression SHOULD support ranges where meaningful.
+  source: 04-policy-module-requirements.md:19
+- id: PL-EXP-005
+  area: policy_expressions
+  level: MUST
+  minimum_phase: 3
+  statement: A match expression MUST support named predicates.
+  source: 04-policy-module-requirements.md:21
+- id: PL-EXP-006
+  area: policy_expressions
+  level: MAY
+  minimum_phase: 3
+  statement: A match expression MAY call registered pure functions.
+  source: 04-policy-module-requirements.md:23
+- id: PL-EXP-007
+  area: policy_expressions
+  level: MUST
+  minimum_phase: 3
+  statement: Match expressions MUST be side-effect free.
+  source: 04-policy-module-requirements.md:25
+- id: PL-EXP-008
+  area: policy_expressions
+  level: MUST
+  minimum_phase: 3
+  statement: The module MUST define short-circuit behavior or explicitly permit equivalent optimized evaluation.
+  source: 04-policy-module-requirements.md:27
+- id: PL-EXP-009
+  area: policy_expressions
+  level: MUST_NOT
+  minimum_phase: 3
+  statement: Optimization MUST NOT change observable match semantics.
+  source: 04-policy-module-requirements.md:29
+- id: PL-SET-001
+  area: policy_sets
+  level: MUST
+  minimum_phase: 3
+  statement: The language MUST support named typed sets.
+  source: 04-policy-module-requirements.md:79
+- id: PL-SET-002
+  area: policy_sets
+  level: MAY
+  minimum_phase: 3
+  statement: Sets MAY be embedded in a policy artifact or resolved from separately supplied artifacts.
+  source: 04-policy-module-requirements.md:81
+- id: PL-SET-003
+  area: policy_sets
+  level: MUST
+  minimum_phase: 3
+  statement: Set update and policy update consistency MUST be explicit.
+  source: 04-policy-module-requirements.md:83
+- id: PL-SET-004
+  area: policy_sets
+  level: MUST
+  minimum_phase: 3
+  statement: The language MUST specify membership semantics independently of the internal data structure.
+  source: 04-policy-module-requirements.md:85
+- id: PL-SET-005
+  area: policy_sets
+  level: MAY
+  minimum_phase: 3
+  statement: Implementations MAY compile sets into any suitable representation.
+  source: 04-policy-module-requirements.md:87
+- id: PL-PRED-001
+  area: policy_predicates
+  level: MUST
+  minimum_phase: 3
+  statement: The language MUST support reusable named predicates.
+  source: 04-policy-module-requirements.md:91
+- id: PL-PRED-002
+  area: policy_predicates
+  level: MUST
+  minimum_phase: 3
+  statement: Predicates MUST be pure expressions.
+  source: 04-policy-module-requirements.md:93
+- id: PL-PRED-003
+  area: policy_predicates
+  level: MUST
+  minimum_phase: 3
+  statement: Recursive predicate definitions MUST be rejected unless the language explicitly defines bounded recursion.
+  source: 04-policy-module-requirements.md:95
+- id: PL-PRED-004
+  area: policy_predicates
+  level: MUST
+  minimum_phase: 3
+  statement: Predicate expansion or compilation MUST preserve type and field-availability semantics.
+  source: 04-policy-module-requirements.md:97
+- id: PL-ACT-001
+  area: policy_actions
+  level: MUST
+  minimum_phase: 3
+  statement: The module MUST support action registration by native processors or application modules.
+  source: 04-policy-module-requirements.md:163
+- id: PL-ACT-002
+  area: policy_actions
+  level: MUST
+  minimum_phase: 3
+  statement: Action argument types MUST be validated during preparation.
+  source: 04-policy-module-requirements.md:165
+- id: PL-ACT-003
+  area: policy_actions
+  level: MUST
+  minimum_phase: 3
+  statement: Actions MUST declare whether they are terminal, non-terminal, or selectable by policy syntax.
+  source: 04-policy-module-requirements.md:167
+- id: PL-ACT-004
+  area: policy_actions
+  level: SHOULD
+  minimum_phase: 3
+  statement: Terminal behavior SHOULD be explicit in the policy.
+  source: 04-policy-module-requirements.md:169
+- id: PL-ACT-005
+  area: policy_actions
+  level: MUST
+  minimum_phase: 3
+  statement: Effects such as packet mutation, metrics, events, state changes, rate limiting, or redirection MUST
+    occur through actions, not match expressions.
+  source: 04-policy-module-requirements.md:171
+- id: PL-ACT-006
+  area: policy_actions
+  level: MUST
+  minimum_phase: 3
+  statement: An unknown action MUST cause preparation failure.
+  source: 04-policy-module-requirements.md:173
+acceptance_scenarios:
+- id: AC-001
+  title: Partial batch
+- id: AC-002
+  title: Mixed batch
+- id: AC-003
+  title: Processor sequence
+- id: AC-004
+  title: Failed preparation
+- id: AC-005
+  title: Atomic generation
+- id: AC-006
+  title: Safe retirement
+- id: AC-007
+  title: Source independence
+- id: AC-008
+  title: Exporter isolation
+- id: AC-009
+  title: Event overflow
+- id: AC-010
+  title: Packet lifetime
+- id: AC-011
+  title: Update rollback
+- id: AC-012
+  title: Resource rejection
+- id: AC-PL-001
+  title: Boolean composition
+- id: AC-PL-002
+  title: Named set membership
+- id: AC-PL-003
+  title: Named predicate
+- id: AC-PL-004
+  title: Missing field semantics
+- id: AC-PL-005
+  title: Ordered ACL
+- id: AC-PL-006
+  title: Action validation
+- id: AC-PL-007
+  title: Pure match expression
+- id: AC-PL-008
+  title: Explanation
