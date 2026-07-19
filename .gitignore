@@ -1,0 +1,8 @@
+/.zig-cache/
+/zig-cache/
+/zig-out/
+/result
+/result-*
+/evidence/m0-v/logs/*.log
+/test/fuzz/findings/
+
