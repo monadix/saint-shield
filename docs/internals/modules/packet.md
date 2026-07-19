@@ -2,64 +2,101 @@
 
 ## Responsibility
 
-`packet` will define backend-neutral storage ownership, segments, borrow-scoped
-views, input origins, receive order, and dispositions. M0-V exposes only a
-compile sentinel; all packet semantics are gated to M1.
-
-It does not receive/transmit packets or choose an I/O backend.
+`packet` defines backend-neutral input/output identities, input origin,
+adapter-token ownership states, receive-order slots, validated packet segments,
+read-only `PacketView`, ordered `PacketBatch`, and lifetime cookies. It does not
+receive or transmit packets, allocate payload storage, parse protocol headers,
+mutate packets, or choose final dispositions.
 
 ## Requirements and invariants
 
-The M1 implementation owns FR-PKT-001..013 and INV-PKT-001..005. None of those
-invariants is claimed by the current sentinel.
+M1 maps FR-PKT-002/003/006/011/012 and the batch formation/time/resource prose
+needed by later pipeline work. Exact tracker transitions and shutdown
+reconciliation enforce INV-PKT-001. Address-stable batches invalidate a cookie
+at processing-call end to enforce INV-PKT-002 in safe code and tests.
 
 ## Public contract
 
-`scaffold_ready` proves package shape only. It is not a packet API.
+`PacketSlot.init` validates at most 16 untrusted segment descriptors with
+checked total-length arithmetic. `PacketView.contiguous` is the zero-copy fast
+path; `read` explicitly copies a requested range; `segments` iterates at most
+16 borrowed pieces. All byte ranges are bounds/overflow checked. A batch holds
+at most 64 slots, preserves strictly increasing receive order, permits empty or
+partial lengths, and must remain address-stable while views exist.
+
+Token transitions are:
+
+| From | Operation | To |
+| --- | --- | --- |
+| input-owned | receive | worker-owned |
+| worker-owned | submit output | output-owned |
+| worker-owned | return to input/pool | returned-to-input |
+| worker-owned | retain | retained |
+| output-owned | complete output | completed |
+| retained | complete lease | completed |
+
+Terminal states reject a second completion. Shutdown verification reports any
+worker/output/retention obligation that remains live.
 
 ## Dependencies
 
-The module may depend on `foundation`, never on `io` or a backend-specific type.
+`packet` depends only on `foundation` and the Zig standard library. It never
+imports an adapter. Adapters construct slots and invoke token transitions.
 
 ## Object lifecycle and ownership
 
-No packet token or view exists in M0-V. M1 must document receive, borrow,
-retention, and exactly-once completion transitions alongside implementation.
+The adapter owns payload memory and `TokenTracker`. A slot and view borrow that
+storage. `PacketBatch.invalidate` ends the processing borrow; stale views return
+`StaleView`. The tracker and payload must outlive slots, and the batch object
+must outlive any attempted stale-view check. Escaping those backing pointers by
+unsafe casts is outside the safe contract.
 
 ## Concurrency
 
-No concurrent state exists. M1 packet batches will be worker-owned and their
-views scoped to one processing call.
+Tracker, slot, and batch mutation is single-worker-owned. There are no atomics,
+locks, waits, or cross-worker aliases in M1.
 
 ## Allocation and work bounds
 
-The sentinel allocates nothing. M1 hot paths must satisfy INV-RES-001 and the
-accepted maximum batch bound of 64.
+Only `TokenTracker.init` allocates one fixed state array. Slot construction,
+views, range access, iteration, transitions, and batch construction allocate
+nothing. View work is O(segments), bounded by 16; shutdown verification is
+O(registered tokens).
 
 ## Failure behavior
 
-No behavior is implemented. M1 defines bounded error effects without weakening
-packet completion invariants.
+Malformed totals, oversized segment sets, descriptor/range arithmetic
+overflow, range bounds, stale borrows, invalid transitions, double completion,
+and missing completion are distinct bounded errors. Rejected transitions leave
+ownership unchanged.
 
 ## Security boundary
 
-Backend metadata and packet bytes become untrusted inputs in M1; M0-V parses
-neither.
+Segment lengths and declared totals are untrusted adapter inputs. Construction
+checks the sum before slicing and rejects declarations larger than backing
+storage. Every public byte range checks both addition and final bounds.
 
 ## Performance budget
 
-M1 must preserve the zero-copy adapter boundary and compare views against the
-simple synthetic reference.
+Ordinary receive-to-output traversal borrows the adapter payload and records
+zero packet-path payload copies. Explicit `read` is a caller-requested copy and
+is not used by the forwarding traversal. M1 results are synthetic regression
+evidence, not production capacity claims.
 
 ## Tests and evidence
 
-M0-V verifies importability only. Range, segment, ownership, and differential
-tests are mandatory at the M1 gate.
+Tests exhaust the six-state/action transition matrix, double/missing
+completion, allocation failure, malformed and overflowing descriptors, every
+range across every split of an eight-byte packet, zero-copy segment iteration,
+receive-order rejection, and stale-cookie behavior. Synthetic integration tests
+cover every size through its configured maximum.
 
 ## Alternatives and evolution
 
-Internal slot layout may evolve behind the backend-neutral public contract.
+M2 adds selection, parsing, dispositions, mutation, and retention-lease pool
+semantics without exposing the internal segment array. A fixed word array may
+replace later selection storage before public stabilization.
 
 ## Open questions
 
-None at M0-V.
+None for the M1 read-only surface.

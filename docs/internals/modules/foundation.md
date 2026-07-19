@@ -2,62 +2,71 @@
 
 ## Responsibility
 
-`foundation` is the dependency-free home for stable identifiers, bounded
-errors, budgets, and time contracts. M0-V exposes only a documented compile
-sentinel; its concrete behavior is predecessor-gated to M1.
-
-It does not own packets, adapters, processors, generations, or policy.
+`foundation` defines allocation-free stable numeric identifier types, bounded
+error identities, hard resource accounting, monotonic instants, and a
+deterministically controlled clock. It does not own packets, adapters,
+processors, generations, policy, or wall-clock conversion.
 
 ## Requirements and invariants
 
-M1 will map the module to the foundational portions of FR-PKT-001..004 and
-INV-RES-001..002. M0-V makes no behavioral claim beyond importability.
+The deterministic clock implements Section 5.8 test-time monotonic time. The
+hard budget is the M1 basis for Section 5.9 and INV-RES-002; later milestone
+allocators must debit it rather than replacing its limit semantics.
 
 ## Public contract
 
-`scaffold_ready` is a compile sentinel, not a capability or readiness probe.
+`StableId(Tag)` creates non-interchangeable `u64` value types without reserving
+sentinels. `BoundedError` carries a stable enum and numeric detail, never an
+owned string. `Budget.reserve` and `Budget.release` are checked and
+failure-atomic. `MonotonicInstant` uses nanoseconds from an unspecified local
+epoch. `DeterministicClock` rejects reversal and overflow.
 
 ## Dependencies
 
-No framework module may be imported here. Higher-level core modules may depend
-on `foundation`; adapters remain downstream of the core.
+Only the Zig standard library is imported. Higher-level core modules may depend
+on `foundation`; dependency direction never reverses.
 
 ## Object lifecycle and ownership
 
-There are no runtime objects or ownership transfers in M0-V.
+All types are values. A `Budget` or `DeterministicClock` is mutated only by its
+owner and owns no external resource.
 
 ## Concurrency
 
-There is no mutable or concurrent state in M0-V.
+No internal synchronization is provided. A mutable budget or clock is
+single-owner; immutable snapshots and identifier values may be copied.
 
 ## Allocation and work bounds
 
-Importing the module allocates nothing and performs no runtime work.
+Every operation is O(1), allocation-free, and non-blocking. Resource addition
+uses checked integer arithmetic before changing state.
 
 ## Failure behavior
 
-The sentinel has no failure mode. Concrete error and budget behavior must land
-with M1 tests and documentation.
+Budget overflow/underflow and time reversal/overflow return bounded errors and
+leave the prior value unchanged.
 
 ## Security boundary
 
-There is no input parser or unsafe boundary in this module.
+No untrusted bytes are parsed. Numeric overflow is an explicit error rather
+than wrapping into a weaker limit.
 
 ## Performance budget
 
-Foundational value types must remain allocation-free on the packet path. The
-M0-V sentinel is not benchmark evidence for the M1 implementation.
+Identifier, error, budget, and time operations remain suitable for packet-path
+contexts without allocation or I/O. No throughput claim is attached to M1.
 
 ## Tests and evidence
 
-All build modes and the AArch64 cross-build import this module through
-`src/root.zig`.
+Unit tests cover distinct identifier types, budget limit/underflow/maximum-
+integer arithmetic, and deterministic time reversal/overflow in all build
+modes. Commands and evidence are recorded under `evidence/m1/`.
 
 ## Alternatives and evolution
 
-M1 replaces the sentinel with bounded types without changing the dependency
-direction. Public semantics require normal compatibility review.
+Atomic accounting may be added as a separate explicitly concurrent type. It
+must not silently change the single-owner budget contract.
 
 ## Open questions
 
-None at M0-V.
+None for M1.

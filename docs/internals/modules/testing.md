@@ -2,65 +2,69 @@
 
 ## Responsibility
 
-`testing` will expose deterministic fixtures and a public processor harness.
-M0-V provides only a compile sentinel; facilities arrive with M1 and M3.
-
-It does not place fuzzers, Scapy, generators, or other tooling in the runtime.
+`testing` standardizes deterministic seeds and bounded minimized operation
+traces for generated tests. Synthetic packets and capture records are supplied
+through public `io.synthetic` and `io.pcap` modules. The full processor harness
+remains predecessor-gated to M3.
 
 ## Requirements and invariants
 
-The future module supports FR-TEST-001..003 and conformance evidence for packet
-and processor invariants. The sentinel claims no fixture semantics.
+The M1 helper supports FR-TEST-001/002 diagnostics and the archived requirement
+that randomized failures print a seed, exact Zig toolchain, and minimized trace.
+Synthetic tests use it alongside INV-PKT-001/002 evidence.
 
 ## Public contract
 
-`scaffold_ready` reserves the namespace only.
+`SeededTrace(N)` owns one deterministic Zig PRNG and at most `N` trace bytes.
+`append` never allocates; insufficient capacity sets `truncated`. A failure
+report always labels `seed`, `toolchain`, and `minimized_trace`.
 
 ## Dependencies
 
-Public test helpers may depend on stable core contracts. External tools remain
-test-only dependencies and are never imported by the public runtime library.
+Only the Zig standard library is imported. External fuzzers and packet oracles
+remain tooling dependencies, not runtime-library imports.
 
 ## Object lifecycle and ownership
 
-No fixture object exists. Future helpers must make allocator ownership, seeded
-randomness, token completion, and teardown deterministic.
+A trace is a caller-owned value. Returned random interfaces borrow its PRNG;
+trace slices borrow its fixed storage.
 
 ## Concurrency
 
-No concurrent state exists. Future schedulers/interleaving fixtures expose
-explicit seeds and minimized traces.
+One test thread owns a trace. Parallel property runs use independent instances
+and independently recorded seeds.
 
 ## Allocation and work bounds
 
-The sentinel allocates nothing. Future fixtures accept caller allocators and
-bounded scenario sizes.
+Trace construction, random generation, append, and inspection allocate nothing.
+Append is O(operation length) and bounded by the comptime storage size.
 
 ## Failure behavior
 
-No test operation exists. Future failures retain exact seed/input and cleanup
-accounting.
+Trace overflow is observable through `truncated`; it never writes beyond the
+fixed buffer. Diagnostic printing occurs only after a failed test.
 
 ## Security boundary
 
-Captured fixtures must be sanitized and record provenance/license; parsers
-treat bytes as untrusted.
+Trace text is diagnostic input supplied by the test. Capture parsing remains in
+the bounded PCAP module.
 
 ## Performance budget
 
-This module is off-path; it must still avoid changing semantics of the code it
-observes.
+This module is test-only and does not execute in packet workers. Instrumenting
+a test must not alter the production code under observation.
 
 ## Tests and evidence
 
-M0-V checks importability and keeps fuzz/tool dependencies outside the runtime.
-Later milestones test the harness against known reference outcomes.
+Tests prove equal seeds reproduce equal PRNG values and trace overflow is
+bounded and explicit. M1 packet properties use exhaustive models, so they do
+not need a random seed to cover their finite state spaces.
 
 ## Alternatives and evolution
 
-Private test helpers may coexist, but public extension contracts require a
-stable supported harness.
+M3 builds the public processor harness over the real synthetic queues and
+pipeline contracts. The seed/trace output format remains usable by it.
 
 ## Open questions
 
-None at M0-V.
+None for M1.

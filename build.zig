@@ -98,6 +98,9 @@ pub fn build(b: *std.Build) void {
     addCommandStep(b, "fuzz-smoke", "Run the deterministic AFL++ M0-V workflow", &.{
         "sh", "tools/m0/fuzz-smoke.sh",
     });
+    addCommandStep(b, "pcap-fuzz-smoke", "Run bounded PCAP replay and AFL++ smoke", &.{
+        "sh", "tools/m1/pcap-fuzz-smoke.sh",
+    });
     addCommandStep(b, "dpdk-smoke", "Run DPDK ABI and virtual ring-PMD token checks", &.{
         "sh", "tools/m0/dpdk-smoke.sh",
     });

@@ -1,9 +1,10 @@
 # Saint Shield
 
 Saint Shield is a Zig framework for building low-level Layer 4 protection
-tools. The repository is currently at the M0-V reproducible virtual foundation:
-the public package and adapter boundaries exist, while packet semantics arrive
-in the predecessor-gated M1-M3 milestones.
+tools. The repository currently includes the M1 hardware-free packet
+foundation: exact adapter-token ownership, segment-safe read-only views,
+deterministic synthetic queues, and bounded classic-PCAP fixtures. Processor
+composition and packet mutation remain predecessor-gated to M2/M3.
 
 Enter the exact local environment and run the hardware-free gate:
 
@@ -19,4 +20,5 @@ PMD. They do not bind a NIC, request VFIO, require root, or modify permanent
 system configuration.
 
 See the [M0-V developer guide](docs/user/m0-v-development.md) for individual
-commands and limitations.
+commands and limitations. See the [M1 packet foundation guide](docs/user/m1-packet-foundation.md)
+for ownership, lifetime, zero-length, and capture-limit behavior.

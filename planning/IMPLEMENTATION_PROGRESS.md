@@ -26,7 +26,7 @@ do not change milestone status.
 | --- | --- | --- | --- | --- |
 | M0-V - virtual toolchain and risk foundation | Complete | 2026-07-19 | 2026-07-19 | Full isolated-cache CI and standalone all-system flake evaluation pass; exact evidence is recorded in `evidence/m0-v/VERIFICATION.md`. |
 | M0-H - physical testbed contract | Not started | - | - | Deferred until hardware exists. |
-| M1 - foundation, ownership, and views | Not started | - | - | - |
+| M1 - foundation, ownership, and views | In progress | 2026-07-19 | - | Expected gate: INV-PKT-001/002 exhaustive small-state synthetic ownership/lifetime checks and unchanged zero-copy traversal for sizes 0 through the configured maximum according to adapter policy. |
 | M2 - parsing, dispositions, and mutation | Not started | - | - | - |
 | M3 - native processor contract and static pipeline | Not started | - | - | - |
 | M4 - DPDK adapter and physical ownership loop | Not started | - | - | Requires M0-H. |
@@ -152,3 +152,4 @@ ledger status. Keep command output in test/benchmark artifacts, not pasted here.
 | 2026-07-19 | M0-V | Recorded provisional completion before independent review. | Superseded by the review-remediation row below; the original evidence did not satisfy every exit condition. | Reopen M0-V and correct the identified gaps. |
 | 2026-07-19 | M0-V | Reopened after independent review found exit-gate gaps. | Remediation must pass all-system flake evaluation, a Zig-observed real mbuf batch boundary with deterministic cleanup accounting, Zig-instrumented AFL coverage, corrected timeout/license/schema evidence, and documentation/API requirements. | Correct M0-V only; do not begin M1 or mark complete before review and project-license reconciliation. |
 | 2026-07-19 | M0-V | Completed review remediation and reconciled evidence. | `nix develop --command zig build ci` passed from isolated Zig caches; standalone `nix flake check --no-build --all-systems`, schema, locked-license, DPDK lifecycle, Zig-branch fuzz, documentation, formatting, and diff checks passed. Exact results: `evidence/m0-v/VERIFICATION.md`. | M1 is the next predecessor-gated action; M0-H remains deferred and mandatory before M4. |
+| 2026-07-19 | M1 | Began foundation, packet ownership, views, bounded capture, and deterministic synthetic adapter implementation. | Expected gate: exact token completion and stale-view detection for INV-PKT-001/002, full range/segment/descriptor/allocation-failure coverage, fuzzable bounded PCAP parsing, and unchanged zero-payload-copy traversal through the configured maximum in all three build modes. | Implement and verify M1 only; do not begin M2. |

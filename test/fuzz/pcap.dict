@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: Apache-2.0
+little_micro="\xd4\xc3\xb2\xa1"
+big_micro="\xa1\xb2\xc3\xd4"
+little_nano="\x4d\x3c\xb2\xa1"
+big_nano="\xa1\xb2\x3c\x4d"
+version_2_4_little="\x02\x00\x04\x00"
+version_2_4_big="\x00\x02\x00\x04"

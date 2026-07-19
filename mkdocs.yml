@@ -4,6 +4,8 @@ strict: true
 nav:
   - Home: user/index.md
   - M0-V development: user/m0-v-development.md
+  - M1 packet foundation: user/m1-packet-foundation.md
+  - Bounded PCAP fixtures: user/pcap-fixtures.md
   - API overview: api/index.md
   - Internals:
       - M0-V foundation: internals/modules/m0-v-foundation.md
