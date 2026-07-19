@@ -557,6 +557,14 @@ test "classic PCAP rejects malformed lengths and timestamps" {
     );
 
     @memcpy(&bytes, valid);
+    writeInt(u32, &bytes, 16, 2, .little);
+    var captured_larger_than_snaplen = try Parser.init(&bytes, generous_limits);
+    try std.testing.expectError(
+        error.MalformedRecordLength,
+        captured_larger_than_snaplen.next(),
+    );
+
+    @memcpy(&bytes, valid);
     writeInt(u32, &bytes, global_header_len + 4, 1_000_000, .little);
     var bad_timestamp = try Parser.init(&bytes, generous_limits);
     try std.testing.expectError(error.MalformedTimestamp, bad_timestamp.next());
@@ -671,6 +679,50 @@ test "classic PCAP writer output is deterministic and preserves metadata" {
     try std.testing.expectEqual(@as(u32, 7), capture.records[0].timestamp.?.seconds);
     try std.testing.expectEqual(@as(u32, 123_456_789), capture.records[0].timestamp.?.fraction);
     try std.testing.expectEqualSlices(u8, &.{ 0xde, 0xad, 0xbe }, capture.records[0].data);
+}
+
+test "classic PCAP writer validates record metadata before allocation" {
+    const config = WriterConfig{
+        .byte_order = .little,
+        .timestamp_resolution = .microseconds,
+        .snaplen = 2,
+        .link_type = 1,
+    };
+    try std.testing.expectError(
+        error.RecordTooLarge,
+        writeAlloc(std.testing.allocator, config, generous_limits, &.{.{
+            .data = &.{ 1, 2, 3 },
+        }}),
+    );
+    try std.testing.expectError(
+        error.OriginalLengthTooSmall,
+        writeAlloc(std.testing.allocator, config, generous_limits, &.{.{
+            .original_len = 1,
+            .data = &.{ 1, 2 },
+        }}),
+    );
+    try std.testing.expectError(
+        error.TimestampResolutionMismatch,
+        writeAlloc(std.testing.allocator, config, generous_limits, &.{.{
+            .timestamp = .{
+                .seconds = 0,
+                .fraction = 0,
+                .resolution = .nanoseconds,
+            },
+            .data = &.{1},
+        }}),
+    );
+    try std.testing.expectError(
+        error.InvalidTimestamp,
+        writeAlloc(std.testing.allocator, config, generous_limits, &.{.{
+            .timestamp = .{
+                .seconds = 0,
+                .fraction = 1_000_000,
+                .resolution = .microseconds,
+            },
+            .data = &.{1},
+        }}),
+    );
 }
 
 test "classic PCAP error classes remain distinct" {
