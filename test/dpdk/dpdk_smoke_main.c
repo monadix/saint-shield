@@ -2,25 +2,35 @@
 #include "compat.h"
 
 #include <stdio.h>
+#include <stdlib.h>
+
+extern int saint_zig_virtual_batch(int injection,
+                                   struct saint_dpdk_cleanup_report *report);
 
 int
-main(void)
+main(int argc, char **argv)
 {
-    struct saint_dpdk_abi_report report;
-    int result = saint_dpdk_validate_abi(&report);
-    if (result != 0) {
-        fprintf(stderr, "DPDK ABI runtime validation failed: %d\n", result);
-        return 1;
-    }
-    printf("M0V_ABI size=%zu align=%zu data_off=%zu pkt_len=%zu data_len=%zu next=%zu\n",
-           report.size, report.alignment, report.data_off_offset,
-           report.pkt_len_offset, report.data_len_offset, report.next_offset);
+    if (argc != 2)
+        return 2;
+    const int injection = atoi(argv[1]);
 
-    result = saint_dpdk_virtual_roundtrip();
+    struct saint_dpdk_abi_report abi;
+    if (saint_dpdk_validate_abi(&abi) != 0)
+        return 1;
+    printf("M0V_ABI size=%zu align=%zu data_off=%zu pkt_len=%zu data_len=%zu next=%zu\n",
+           abi.size, abi.alignment, abi.data_off_offset, abi.pkt_len_offset,
+           abi.data_len_offset, abi.next_offset);
+
+    struct saint_dpdk_cleanup_report cleanup;
+    const int result = saint_zig_virtual_batch(injection, &cleanup);
+    printf("M0V_CLEANUP injection=%d allocated=%u completed=%u initial=%u final=%u drained_rx=%u drained_tx=%u rx_bursts=%u tx_bursts=%u balanced=%u\n",
+           injection, cleanup.allocated, cleanup.completed,
+           cleanup.initial_available, cleanup.final_available,
+           cleanup.drained_rx, cleanup.drained_tx, cleanup.rx_bursts,
+           cleanup.tx_bursts, cleanup.balanced);
     if (result != 0) {
-        fprintf(stderr, "DPDK virtual round trip failed: %d\n", result);
+        fprintf(stderr, "Zig-driven virtual batch failed: %d\n", result);
         return 1;
     }
-    puts("DPDK no-huge ring-PMD token round trip passed");
     return 0;
 }

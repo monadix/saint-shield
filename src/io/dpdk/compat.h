@@ -5,17 +5,16 @@
 #include <stddef.h>
 #include <stdint.h>
 
-/*
- * SAFETY: this narrow, stable-to-this-adapter view is asserted field-for-field
- * against the pinned rte_mbuf by compat.c. Zig imports this view instead of
- * translating DPDK's unrelated EAL/TLS declarations. It is an internal C ABI,
- * not a public framework type, and no pointer outlives backend ownership.
- */
+/* Private adapter view. Processors and the public library never see it. */
+struct saint_dpdk_reserved_u16 {
+    _Alignas(2) uint8_t bytes[2];
+};
+
 struct saint_dpdk_mbuf_view {
     void *buf_addr;
     uint64_t buf_iova;
     uint16_t data_off;
-    uint16_t refcnt;
+    struct saint_dpdk_reserved_u16 reserved_refcnt;
     uint16_t nb_segs;
     uint16_t port;
     uint64_t ol_flags;
@@ -45,12 +44,6 @@ enum saint_dpdk_mbuf_layout {
     SAINT_DPDK_MBUF_OFFSET_NEXT = offsetof(struct saint_dpdk_mbuf_view, next),
 };
 
-_Static_assert(SAINT_DPDK_MBUF_OFFSET_BUF_ADDR < SAINT_DPDK_MBUF_OFFSET_DATA_OFF,
-               "rte_mbuf prefix ordering changed");
-_Static_assert(SAINT_DPDK_MBUF_OFFSET_DATA_OFF < SAINT_DPDK_MBUF_OFFSET_PKT_LEN,
-               "rte_mbuf packet fields moved before data offset");
-_Static_assert(SAINT_DPDK_MBUF_OFFSET_PKT_LEN < SAINT_DPDK_MBUF_OFFSET_NEXT,
-               "rte_mbuf chaining field ordering changed");
 _Static_assert(sizeof(((struct saint_dpdk_mbuf_view *)0)->pkt_len) == sizeof(uint32_t),
                "view pkt_len must remain 32-bit");
 _Static_assert(sizeof(((struct saint_dpdk_mbuf_view *)0)->data_len) == sizeof(uint16_t),
@@ -65,7 +58,46 @@ struct saint_dpdk_abi_report {
     size_t next_offset;
 };
 
+struct saint_dpdk_cleanup_report {
+    uint32_t allocated;
+    uint32_t completed;
+    uint32_t initial_available;
+    uint32_t final_available;
+    uint32_t drained_rx;
+    uint32_t drained_tx;
+    uint32_t rx_bursts;
+    uint32_t tx_bursts;
+    uint8_t balanced;
+};
+
+enum saint_dpdk_injection {
+    SAINT_DPDK_INJECT_NONE = 0,
+    SAINT_DPDK_INJECT_AFTER_POOL = 1,
+    SAINT_DPDK_INJECT_AFTER_RINGS = 2,
+    SAINT_DPDK_INJECT_AFTER_PORT = 3,
+    SAINT_DPDK_INJECT_AFTER_ENQUEUE = 4,
+    SAINT_DPDK_INJECT_TX_REJECT = 5,
+    SAINT_DPDK_INJECT_AFTER_TX_ACCEPT = 6,
+};
+
+struct saint_dpdk_context;
+
 int saint_dpdk_validate_abi(struct saint_dpdk_abi_report *report);
-int saint_dpdk_virtual_roundtrip(void);
+int saint_dpdk_context_create(int injection,
+                              struct saint_dpdk_context **context,
+                              struct saint_dpdk_cleanup_report *failure_report);
+uint16_t saint_dpdk_rx_burst(struct saint_dpdk_context *context,
+                             struct saint_dpdk_mbuf_view **tokens,
+                             uint16_t capacity);
+uint16_t saint_dpdk_tx_burst(struct saint_dpdk_context *context,
+                             struct saint_dpdk_mbuf_view **tokens,
+                             uint16_t count);
+uint16_t saint_dpdk_release_burst(struct saint_dpdk_context *context,
+                                  struct saint_dpdk_mbuf_view **tokens,
+                                  uint16_t count);
+int saint_dpdk_complete_tx(struct saint_dpdk_context *context,
+                           uint16_t expected);
+int saint_dpdk_context_destroy(struct saint_dpdk_context *context,
+                               struct saint_dpdk_cleanup_report *report);
 
 #endif

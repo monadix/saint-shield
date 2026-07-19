@@ -26,7 +26,10 @@
           pkgs = import nixpkgs { inherit system; };
           dpdk = self.packages.${system}.dpdk;
           python = pkgs.python3.withPackages (ps: [ ps.jsonschema ps.scapy ]);
-          linuxOnly = nixpkgs.lib.optionals pkgs.stdenv.isLinux [ pkgs.perf ];
+          x86QualityTools = nixpkgs.lib.optionals (system == "x86_64-linux") [
+            pkgs.aflplusplus
+            pkgs.perf
+          ];
         in {
           default = pkgs.mkShell {
             strictDeps = true;
@@ -34,7 +37,6 @@
             packages = [
               pkgs.zig
               dpdk
-              pkgs.aflplusplus
               pkgs.check-jsonschema
               pkgs.clang
               pkgs.llvm
@@ -48,13 +50,13 @@
               pkgs.linkchecker
               pkgs.tlaplus
               python
-            ] ++ linuxOnly;
+            ] ++ x86QualityTools;
 
             DPDK_PREFIX = "${dpdk}";
             SAINT_SHIELD_ZIG_VERSION = pkgs.zig.version;
             SAINT_SHIELD_DPDK_VERSION = dpdk.version;
             SAINT_SHIELD_SCAPY_VERSION = pkgs.python3Packages.scapy.version;
-            SAINT_SHIELD_AFL_VERSION = pkgs.aflplusplus.version;
+            SAINT_SHIELD_AFL_VERSION = if system == "x86_64-linux" then pkgs.aflplusplus.version else "unavailable-on-aarch64";
             SAINT_SHIELD_TLA_VERSION = pkgs.tlaplus.version;
 
             shellHook = ''
