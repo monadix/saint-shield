@@ -90,22 +90,22 @@ pub fn build(b: *std.Build) void {
         "zig", "fmt", "--check", "build.zig", "src", "examples", "test", "bench",
     });
     addCommandStep(b, "schemas", "Validate benchmark and environment JSON examples", &.{
-        "tools/m0/validate-schemas.sh",
+        "sh", "tools/m0/validate-schemas.sh",
     });
     addCommandStep(b, "fuzz-smoke", "Run the deterministic AFL++ M0-V workflow", &.{
-        "tools/m0/fuzz-smoke.sh",
+        "sh", "tools/m0/fuzz-smoke.sh",
     });
     addCommandStep(b, "dpdk-smoke", "Run DPDK ABI and virtual ring-PMD token checks", &.{
-        "tools/m0/dpdk-smoke.sh",
+        "sh", "tools/m0/dpdk-smoke.sh",
     });
     addCommandStep(b, "integrity", "Verify pinned dependency and license metadata", &.{
-        "tools/m0/verify-integrity.sh",
+        "sh", "tools/m0/verify-integrity.sh",
     });
     addCommandStep(b, "docs-check", "Validate authored documentation links", &.{
-        "tools/m0/docs-check.sh",
+        "sh", "tools/m0/docs-check.sh",
     });
     addCommandStep(b, "ci", "Run the complete hardware-free M0-V CI gate", &.{
-        "tools/m0/ci.sh",
+        "sh", "tools/m0/ci.sh",
     });
 }
 
@@ -114,4 +114,3 @@ fn addCommandStep(b: *std.Build, name: []const u8, description: []const u8, argv
     const step = b.step(name, description);
     step.dependOn(&command.step);
 }
-

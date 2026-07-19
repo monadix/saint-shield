@@ -26,10 +26,11 @@
           pkgs = import nixpkgs { inherit system; };
           dpdk = self.packages.${system}.dpdk;
           python = pkgs.python3.withPackages (ps: [ ps.jsonschema ps.scapy ]);
-          linuxOnly = nixpkgs.lib.optionals pkgs.stdenv.isLinux [ pkgs.linuxPackages.perf ];
+          linuxOnly = nixpkgs.lib.optionals pkgs.stdenv.isLinux [ pkgs.perf ];
         in {
           default = pkgs.mkShell {
             strictDeps = true;
+            buildInputs = [ dpdk pkgs.libbsd pkgs.numactl pkgs.libelf pkgs.zlib ];
             packages = [
               pkgs.zig
               dpdk
@@ -70,4 +71,3 @@
         });
     };
 }
-
