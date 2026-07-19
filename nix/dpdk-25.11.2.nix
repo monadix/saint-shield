@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 { lib, stdenv, fetchurl, meson, ninja, pkg-config, python3, numactl, libbsd, libelf, zlib }:
 
 stdenv.mkDerivation (finalAttrs: {

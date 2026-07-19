@@ -1,0 +1,176 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://saint-shield.invalid/schemas/environment-manifest-v1.json",
+  "title": "Saint Shield benchmark environment manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "captured_utc", "support_label", "hardware_claim", "host", "memory", "nic", "software", "runtime", "application", "generator", "topology", "ambient"],
+  "properties": {
+    "schema": {"const": "saint-shield-environment/v1"},
+    "captured_utc": {"type": "string", "format": "date-time"},
+    "support_label": {"enum": ["virtual-regression-only", "build-tested", "performance-supported"]},
+    "hardware_claim": {"type": "boolean"},
+    "host": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cpu_model", "microcode", "sockets", "physical_cores", "logical_cpus", "smt", "governor", "turbo", "c_states", "numa", "kernel_command_line", "isolated_cpus", "cpu_affinity", "irq_affinity"],
+      "properties": {
+        "cpu_model": {"type": "string"},
+        "microcode": {"type": "string"},
+        "sockets": {"type": "integer", "minimum": 1},
+        "physical_cores": {"type": "integer", "minimum": 1},
+        "logical_cpus": {"type": "integer", "minimum": 1},
+        "smt": {"type": "boolean"},
+        "governor": {"type": "string"},
+        "turbo": {"type": "string"},
+        "c_states": {"type": "string"},
+        "numa": {"type": "string"},
+        "kernel_command_line": {"type": "string"},
+        "isolated_cpus": {"type": "string"},
+        "cpu_affinity": {"type": "string"},
+        "irq_affinity": {"type": "string"}
+      }
+    },
+    "memory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total_bytes", "channels", "speed", "numa_placement", "hugepages", "locked_bytes"],
+      "properties": {
+        "total_bytes": {"type": "integer", "minimum": 0},
+        "channels": {"type": "string"},
+        "speed": {"type": "string"},
+        "numa_placement": {"type": "string"},
+        "hugepages": {"type": "string"},
+        "locked_bytes": {"type": "integer", "minimum": 0}
+      }
+    },
+    "nic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pci_id", "ports", "queues", "driver", "pmd", "firmware", "link_gbps", "offloads", "flow_steering"],
+      "properties": {
+        "pci_id": {"type": "string"},
+        "ports": {"type": "integer", "minimum": 0},
+        "queues": {"type": "integer", "minimum": 0},
+        "driver": {"type": "string"},
+        "pmd": {"type": "string"},
+        "firmware": {"type": "string"},
+        "link_gbps": {"type": "number", "minimum": 0},
+        "offloads": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "flow_steering": {"type": "string"}
+      }
+    },
+    "software": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kernel", "zig", "dpdk", "libbpf", "libxdp", "application_commit", "build_mode", "nixpkgs_revision"],
+      "properties": {
+        "kernel": {"type": "string"},
+        "zig": {"const": "0.16.0"},
+        "dpdk": {"type": ["string", "null"]},
+        "libbpf": {"type": ["string", "null"]},
+        "libxdp": {"type": ["string", "null"]},
+        "application_commit": {"type": "string"},
+        "build_mode": {"enum": ["Debug", "ReleaseSafe", "ReleaseFast"]},
+        "nixpkgs_revision": {"type": "string", "pattern": "^[0-9a-f]{40}$"}
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["backend", "rx_descriptors", "tx_descriptors", "mempool_or_umem", "batch_max", "mtu", "offloads", "rss_key", "rss_fields"],
+      "properties": {
+        "backend": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "version", "mode"],
+          "properties": {
+            "name": {"enum": ["synthetic", "dpdk", "af_xdp"]},
+            "version": {"type": "string"},
+            "mode": {"type": "string"}
+          }
+        },
+        "rx_descriptors": {"type": "integer", "minimum": 0},
+        "tx_descriptors": {"type": "integer", "minimum": 0},
+        "mempool_or_umem": {"type": "string"},
+        "batch_max": {"type": "integer", "minimum": 1, "maximum": 64},
+        "mtu": {"type": "integer", "minimum": 0},
+        "offloads": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "rss_key": {"type": "string"},
+        "rss_fields": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+      }
+    },
+    "application": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pipeline", "artifact_semantic_hash", "resource_limits"],
+      "properties": {
+        "pipeline": {"type": "array", "items": {"type": "string"}},
+        "artifact_semantic_hash": {"type": "string"},
+        "resource_limits": {"type": "object"}
+      }
+    },
+    "generator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version", "profile", "rate", "headroom_verified", "cable", "timestamp_method", "timestamp_resolution_ns"],
+      "properties": {
+        "name": {"type": "string"},
+        "version": {"type": "string"},
+        "profile": {"type": "string"},
+        "rate": {"type": "string"},
+        "headroom_verified": {"type": "boolean"},
+        "cable": {"type": "string"},
+        "timestamp_method": {"type": "string"},
+        "timestamp_resolution_ns": {"type": "number", "minimum": 0}
+      }
+    },
+    "topology": {"type": "string"},
+    "ambient": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["background_load", "thermal"],
+      "properties": {
+        "background_load": {"type": "string"},
+        "thermal": {"type": "string"}
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"hardware_claim": {"const": false}}},
+      "then": {"properties": {"support_label": {"enum": ["virtual-regression-only", "build-tested"]}}}
+    },
+    {
+      "if": {"properties": {"support_label": {"const": "performance-supported"}}},
+      "then": {"properties": {"hardware_claim": {"const": true}}}
+    },
+    {
+      "if": {"properties": {"runtime": {"properties": {"backend": {"properties": {"name": {"const": "dpdk"}}}}}}},
+      "then": {
+        "properties": {
+          "software": {"properties": {"dpdk": {"const": "25.11.2"}}},
+          "runtime": {"properties": {"backend": {"properties": {"version": {"const": "25.11.2"}}}}}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"runtime": {"properties": {"backend": {"properties": {"name": {"const": "synthetic"}}}}}}},
+      "then": {"properties": {"runtime": {"properties": {"backend": {"properties": {"version": {"const": "m0v"}}}}}}}
+    },
+    {
+      "if": {"properties": {"runtime": {"properties": {"backend": {"properties": {"name": {"const": "af_xdp"}}}}}}},
+      "then": {
+        "properties": {
+          "software": {
+            "properties": {
+              "dpdk": {"type": "null"},
+              "libbpf": {"type": "string", "minLength": 1},
+              "libxdp": {"type": "string", "minLength": 1}
+            }
+          }
+        }
+      }
+    }
+  ]
+}

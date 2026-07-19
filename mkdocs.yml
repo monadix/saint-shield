@@ -1,0 +1,22 @@
+site_name: Saint Shield
+docs_dir: docs
+strict: true
+nav:
+  - Home: user/index.md
+  - M0-V development: user/m0-v-development.md
+  - API overview: api/index.md
+  - Internals:
+      - M0-V foundation: internals/modules/m0-v-foundation.md
+      - Foundation: internals/modules/foundation.md
+      - Packet: internals/modules/packet.md
+      - Processor: internals/modules/processor.md
+      - Pipeline: internals/modules/pipeline.md
+      - Update: internals/modules/update.md
+      - Observability: internals/modules/observability.md
+      - State: internals/modules/state.md
+      - Policy: internals/modules/policy.md
+      - Testing: internals/modules/testing.md
+      - I/O: internals/modules/io.md
+  - Decisions:
+      - Project license: adr/0001-project-license.md
+      - D-012 fuzz engine: adr/0012-coverage-guided-fuzz-engine.md

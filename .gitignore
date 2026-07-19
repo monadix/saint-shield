@@ -5,4 +5,5 @@
 /result-*
 /evidence/m0-v/logs/*.log
 /test/fuzz/findings/
-
+__pycache__/
+*.py[cod]

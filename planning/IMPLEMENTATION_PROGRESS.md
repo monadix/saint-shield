@@ -24,7 +24,7 @@ do not change milestone status.
 
 | Milestone | Status | Started | Completed | Evidence summary |
 | --- | --- | --- | --- | --- |
-| M0-V - virtual toolchain and risk foundation | In progress | 2026-07-19 | - | Expected gate: complete reproducible virtual foundation exit in `LOCAL_EXECUTION_PLAN.md` and archived M0 virtual evidence. |
+| M0-V - virtual toolchain and risk foundation | Complete | 2026-07-19 | 2026-07-19 | Full isolated-cache CI and standalone all-system flake evaluation pass; exact evidence is recorded in `evidence/m0-v/VERIFICATION.md`. |
 | M0-H - physical testbed contract | Not started | - | - | Deferred until hardware exists. |
 | M1 - foundation, ownership, and views | Not started | - | - | - |
 | M2 - parsing, dispositions, and mutation | Not started | - | - | - |
@@ -43,28 +43,29 @@ do not change milestone status.
 
 ### M0-V checklist
 
-- [ ] `flake.nix` and locked inputs provide the complete development environment.
-- [ ] Zig 0.16.0 and DPDK 25.11.2 sources/hashes are pinned.
-- [ ] `build.zig`/`build.zig.zon` and proposed module layout exist.
-- [ ] Formatting, Debug, ReleaseSafe, ReleaseFast, test, docs, benchmark, fuzz,
+- [x] `flake.nix` and locked inputs provide the complete development environment.
+- [x] Zig 0.16.0 and DPDK 25.11.2 sources/hashes are pinned.
+- [x] `build.zig`/`build.zig.zon` and proposed module layout exist.
+- [x] Formatting, Debug, ReleaseSafe, ReleaseFast, test, docs, benchmark, fuzz,
       and CI entry points are defined.
-- [ ] Linux x86-64 clean builds pass in all build modes.
-- [ ] Linux AArch64 public library cross-compiles.
-- [ ] Required DPDK C ABI size/offset assertions pass.
-- [ ] DPDK virtual-PMD burst/token round trip passes with no huge pages.
-- [ ] Coverage-guided fuzz engine is selected by D-012 ADR with a working
+- [x] Linux x86-64 clean builds pass in all build modes.
+- [x] Linux AArch64 public library cross-compiles.
+- [x] Required DPDK C ABI size/offset assertions pass.
+- [x] DPDK virtual-PMD burst/token round trip passes with no huge pages.
+- [x] Coverage-guided fuzz engine is selected by D-012 ADR with a working
       crash/reproducer/corpus workflow.
-- [ ] Benchmark result and environment manifest schemas validate examples.
-- [ ] Dependency and license integrity evidence is recorded.
-- [ ] M0-V documentation and clean-environment commands pass.
+- [x] Benchmark result and environment manifest schemas validate examples.
+- [x] Dependency and license integrity evidence is recorded.
+- [x] M0-V documentation and clean-environment commands pass.
 
 Evidence:
 
-- Commands: _pending_
-- Test reports: _pending_
-- ADRs: _pending_
-- Benchmarks/schemas: _pending_
-- Known limitations: _pending_
+- Commands: `nix build .#dpdk --print-build-logs`; `nix develop --command zig build ci`; exact subcommands in `evidence/m0-v/VERIFICATION.md`.
+- Test reports: `evidence/m0-v/VERIFICATION.md`; matching Zig/C ABI report, no-huge virtual token, three-mode clean-cache, and AArch64 evidence.
+- ADRs: `docs/adr/0001-project-license.md`,
+  `docs/adr/0012-coverage-guided-fuzz-engine.md`.
+- Benchmarks/schemas: `bench/schemas/`, `bench/examples/`; validated synthetic regression example only, no capacity claim.
+- Known limitations: AArch64 build-tested only; M0-H physical testbed and production performance evidence remain deferred.
 
 ### M1 checklist
 
@@ -148,3 +149,6 @@ ledger status. Keep command output in test/benchmark artifacts, not pasted here.
 | --- | --- | --- | --- | --- |
 | 2026-07-19 | Planning | Initialized verified specification, local execution plan, and progress ledger. | Both archive manifests passed `sha256sum -c`. | Start M0-V. |
 | 2026-07-19 | M0-V | Began reproducible virtual foundation implementation. | Expected gate: three-mode x86 build/test, AArch64 library cross-compile, exact dependency integrity, DPDK ABI and no-huge virtual token round trip, deterministic fuzz workflow, and schema/docs validation. | Create and verify the M0-V scaffold. |
+| 2026-07-19 | M0-V | Recorded provisional completion before independent review. | Superseded by the review-remediation row below; the original evidence did not satisfy every exit condition. | Reopen M0-V and correct the identified gaps. |
+| 2026-07-19 | M0-V | Reopened after independent review found exit-gate gaps. | Remediation must pass all-system flake evaluation, a Zig-observed real mbuf batch boundary with deterministic cleanup accounting, Zig-instrumented AFL coverage, corrected timeout/license/schema evidence, and documentation/API requirements. | Correct M0-V only; do not begin M1 or mark complete before review and project-license reconciliation. |
+| 2026-07-19 | M0-V | Completed review remediation and reconciled evidence. | `nix develop --command zig build ci` passed from isolated Zig caches; standalone `nix flake check --no-build --all-systems`, schema, locked-license, DPDK lifecycle, Zig-branch fuzz, documentation, formatting, and diff checks passed. Exact results: `evidence/m0-v/VERIFICATION.md`. | M1 is the next predecessor-gated action; M0-H remains deferred and mandatory before M4. |

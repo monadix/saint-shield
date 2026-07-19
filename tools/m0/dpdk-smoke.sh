@@ -1,4 +1,5 @@
 #!/bin/sh
+# SPDX-License-Identifier: Apache-2.0
 set -eu
 
 : "${DPDK_PREFIX:?enter the workspace with nix develop}"

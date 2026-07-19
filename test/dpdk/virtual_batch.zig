@@ -1,9 +1,13 @@
+// SPDX-License-Identifier: Apache-2.0
+
 const c = @cImport({
     @cInclude("compat.h");
 });
 
 const expected_payload = "SAINT-SHIELD-M0V";
 
+/// Runs one Zig-owned virtual batch and returns zero only when token and pool
+/// accounting match the selected deterministic cleanup scenario.
 export fn saint_zig_virtual_batch(
     injection: c_int,
     report: *c.struct_saint_dpdk_cleanup_report,

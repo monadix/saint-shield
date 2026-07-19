@@ -1,0 +1,14 @@
+{
+  "schema": "saint-shield-dependencies/v1",
+  "nixpkgs": {"revision": "61b7c44c4073f0b827768aff0049561b5110ea5a", "nar_hash": "sha256-12KrbMiWLcf8m7pCvAtZh1ZrgF85ZXDXvfR/fWTKy84="},
+  "runtime_build": [
+    {"name": "Zig", "version": "0.16.0", "license_spdx": ["MIT"], "metadata_source": "locked nixpkgs meta.license"},
+    {"name": "DPDK", "version": "25.11.2", "license_spdx": ["BSD-3-Clause"], "metadata_source": "nix/dpdk-25.11.2.nix meta.license", "source": "https://fast.dpdk.org/rel/dpdk-25.11.2.tar.xz", "hash": "sha256-QYv+MhJkDulaHLEK9u02DK0jh2hv4nIfijqc0C1e9PI="}
+  ],
+  "test_tooling": [
+    {"name": "AFL++", "version": "5.00c", "license_spdx": ["Apache-2.0", "AGPL-3.0-or-later"], "metadata_source": "locked nixpkgs meta.license"},
+    {"name": "Scapy", "version": "2.7.0", "license_spdx": ["GPL-2.0-only"], "metadata_source": "locked nixpkgs meta.license"},
+    {"name": "TLA+ tools", "version": "1.7.4", "license_spdx": ["MIT"], "metadata_source": "locked nixpkgs meta.license"},
+    {"name": "check-jsonschema", "version": "0.37.4", "license_spdx": ["Apache-2.0"], "metadata_source": "locked nixpkgs meta.license"}
+  ]
+}

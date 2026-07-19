@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://saint-shield.invalid/schemas/benchmark-result-v1.json",
+  "title": "Saint Shield benchmark result v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "run_id", "timestamp_utc", "git_commit", "dirty", "build", "environment", "backend", "application", "traffic", "methodology", "result", "valid", "invalid_reason", "raw_files"],
+  "properties": {
+    "schema": {"const": "saint-shield-bench/v1"},
+    "run_id": {"type": "string", "pattern": "^[a-zA-Z0-9._-]+$"},
+    "timestamp_utc": {"type": "string", "format": "date-time"},
+    "git_commit": {"type": "string", "minLength": 7},
+    "dirty": {"type": "boolean"},
+    "build": {
+      "type": "object", "additionalProperties": false,
+      "required": ["zig", "mode", "target", "features"],
+      "properties": {
+        "zig": {"const": "0.16.0"},
+        "mode": {"enum": ["Debug", "ReleaseSafe", "ReleaseFast"]},
+        "target": {"type": "string"},
+        "features": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+      }
+    },
+    "environment": {"type": "string", "pattern": "^[a-zA-Z0-9._/-]+\\.json$"},
+    "backend": {
+      "type": "object", "additionalProperties": false,
+      "required": ["name", "version", "mode"],
+      "properties": {"name": {"type": "string"}, "version": {"type": "string"}, "mode": {"type": "string"}}
+    },
+    "application": {
+      "type": "object", "additionalProperties": false,
+      "required": ["pipeline", "generation_digest", "batch_max", "resources"],
+      "properties": {
+        "pipeline": {"type": "array", "items": {"type": "string"}},
+        "generation_digest": {"type": "string"},
+        "batch_max": {"type": "integer", "minimum": 1, "maximum": 64},
+        "resources": {"type": "object"}
+      }
+    },
+    "traffic": {
+      "type": "object", "additionalProperties": false,
+      "required": ["generator", "frame_profile", "protocol", "flows", "offered_pps", "duration_s"],
+      "properties": {
+        "generator": {"type": "string"}, "frame_profile": {"type": "string"}, "protocol": {"type": "string"},
+        "flows": {"type": "integer", "minimum": 0}, "offered_pps": {"type": "number", "minimum": 0},
+        "duration_s": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "methodology": {
+      "type": "object", "additionalProperties": false,
+      "required": ["preflight", "warmup_seconds", "independent_run", "independent_runs", "load_order", "zero_loss_search", "timestamp_method", "timestamp_resolution_ns", "generator_headroom_ratio", "adapted_standards", "rejection_checks"],
+      "properties": {
+        "preflight": {"type": "string"},
+        "warmup_seconds": {"type": "number", "minimum": 0},
+        "independent_run": {"type": "integer", "minimum": 1},
+        "independent_runs": {"type": "integer", "minimum": 1},
+        "load_order": {"type": "string"},
+        "zero_loss_search": {"type": "string"},
+        "timestamp_method": {"type": "string"},
+        "timestamp_resolution_ns": {"type": "number", "minimum": 0},
+        "generator_headroom_ratio": {"type": "number", "minimum": 0},
+        "adapted_standards": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "rejection_checks": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+      }
+    },
+    "result": {
+      "type": "object", "additionalProperties": false,
+      "required": ["rx_pps", "tx_pps", "loss_packets", "latency_ns", "cpu", "perf", "memory_bytes"],
+      "properties": {
+        "rx_pps": {"type": "number", "minimum": 0}, "tx_pps": {"type": "number", "minimum": 0},
+        "loss_packets": {"type": "integer", "minimum": 0},
+        "latency_ns": {
+          "type": "object", "additionalProperties": false,
+          "required": ["p50", "p99", "p999", "max"],
+          "properties": {"p50": {"type": "number", "minimum": 0}, "p99": {"type": "number", "minimum": 0}, "p999": {"type": "number", "minimum": 0}, "max": {"type": "number", "minimum": 0}}
+        },
+        "cpu": {"type": "object"}, "perf": {"type": "object"}, "memory_bytes": {"type": "object"}
+      }
+    },
+    "valid": {"type": "boolean"},
+    "invalid_reason": {"type": ["string", "null"]},
+    "raw_files": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+  },
+  "allOf": [
+    {"if": {"properties": {"valid": {"const": true}}}, "then": {"properties": {"invalid_reason": {"type": "null"}}}},
+    {"if": {"properties": {"valid": {"const": false}}}, "then": {"properties": {"invalid_reason": {"type": "string", "minLength": 1}}}},
+    {"if": {"properties": {"backend": {"properties": {"name": {"const": "dpdk"}}}}}, "then": {"properties": {"backend": {"properties": {"version": {"const": "25.11.2"}}}}}},
+    {"if": {"properties": {"backend": {"properties": {"name": {"const": "synthetic"}}}}}, "then": {"properties": {"backend": {"properties": {"version": {"const": "m0v"}}}}}}
+  ]
+}

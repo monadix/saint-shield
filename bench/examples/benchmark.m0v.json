@@ -1,0 +1,17 @@
+{
+  "schema": "saint-shield-bench/v1",
+  "run_id": "m0v-synthetic-example",
+  "timestamp_utc": "2026-07-19T00:00:00Z",
+  "git_commit": "m0v-working-tree",
+  "dirty": true,
+  "build": {"zig": "0.16.0", "mode": "ReleaseSafe", "target": "x86_64-linux-gnu", "features": ["synthetic"]},
+  "environment": "bench/examples/environment.m0v.json",
+  "backend": {"name": "synthetic", "version": "m0v", "mode": "host-local"},
+  "application": {"pipeline": [], "generation_digest": "not-applicable-m0v", "batch_max": 64, "resources": {}},
+  "traffic": {"generator": "synthetic-loop", "frame_profile": "not-packets", "protocol": "not-applicable", "flows": 0, "offered_pps": 0, "duration_s": 0.001},
+  "methodology": {"preflight": "synthetic-self-check", "warmup_seconds": 0, "independent_run": 1, "independent_runs": 1, "load_order": "not-applicable", "zero_loss_search": "not-applicable", "timestamp_method": "host-monotonic", "timestamp_resolution_ns": 1, "generator_headroom_ratio": 0, "adapted_standards": [], "rejection_checks": ["no-hardware-claim"]},
+  "result": {"rx_pps": 0, "tx_pps": 0, "loss_packets": 0, "latency_ns": {"p50": 0, "p99": 0, "p999": 0, "max": 0}, "cpu": {}, "perf": {}, "memory_bytes": {}},
+  "valid": true,
+  "invalid_reason": null,
+  "raw_files": []
+}

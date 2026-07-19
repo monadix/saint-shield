@@ -1,0 +1,15 @@
+{
+  "schema": "saint-shield-environment/v1",
+  "captured_utc": "2026-07-19T00:00:00Z",
+  "support_label": "virtual-regression-only",
+  "hardware_claim": false,
+  "host": {"cpu_model": "local-x86_64", "microcode": "not-recorded-for-virtual-smoke", "sockets": 1, "physical_cores": 10, "logical_cpus": 20, "smt": true, "governor": "uncontrolled", "turbo": "uncontrolled", "c_states": "uncontrolled", "numa": "one-visible-node", "kernel_command_line": "not-captured", "isolated_cpus": "none-required", "cpu_affinity": "scheduler-selected", "irq_affinity": "not-applicable"},
+  "memory": {"total_bytes": 0, "channels": "not-captured", "speed": "not-captured", "numa_placement": "not-controlled", "hugepages": "none; DPDK --no-huge", "locked_bytes": 0},
+  "nic": {"pci_id": "virtual", "ports": 0, "queues": 1, "driver": "virtual", "pmd": "net_ring", "firmware": "not-applicable", "link_gbps": 0, "offloads": [], "flow_steering": "not-applicable"},
+  "software": {"kernel": "6.18-local", "zig": "0.16.0", "dpdk": "25.11.2", "libbpf": null, "libxdp": null, "application_commit": "m0v-working-tree", "build_mode": "ReleaseSafe", "nixpkgs_revision": "61b7c44c4073f0b827768aff0049561b5110ea5a"},
+  "runtime": {"backend": {"name": "synthetic", "version": "m0v", "mode": "host-local"}, "rx_descriptors": 0, "tx_descriptors": 0, "mempool_or_umem": "not-applicable", "batch_max": 64, "mtu": 1500, "offloads": [], "rss_key": "not-applicable", "rss_fields": []},
+  "application": {"pipeline": [], "artifact_semantic_hash": "not-applicable-m0v", "resource_limits": {}},
+  "generator": {"name": "synthetic-loop", "version": "m0v", "profile": "100000 integer iterations", "rate": "uncontrolled", "headroom_verified": false, "cable": "not-applicable", "timestamp_method": "host-monotonic", "timestamp_resolution_ns": 1},
+  "topology": "host-local synthetic regression smoke; no NIC or capacity claim",
+  "ambient": {"background_load": "uncontrolled", "thermal": "not-captured"}
+}

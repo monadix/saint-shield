@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 const std = @import("std");
 
 const c = @cImport({
@@ -5,6 +7,8 @@ const c = @cImport({
 });
 
 comptime {
+    if (@hasField(c.struct_saint_dpdk_mbuf_view, "refcnt"))
+        @compileError("the DPDK adapter must not expose rte_mbuf.refcnt to Zig");
     if (@sizeOf(c.struct_saint_dpdk_mbuf_view) != c.SAINT_DPDK_MBUF_SIZE)
         @compileError("translated mbuf view size differs from C");
     if (@alignOf(c.struct_saint_dpdk_mbuf_view) != c.SAINT_DPDK_MBUF_ALIGN)
@@ -19,6 +23,7 @@ comptime {
         @compileError("translated rte_mbuf.next offset differs");
 }
 
+/// Emits the Zig-translated layout and checks direct non-owning field access.
 pub fn main() !void {
     // SAFETY: this stack value has no backend ownership; it exists only to
     // prove Zig emits direct field loads/stores at the C-asserted offsets.

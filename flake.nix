@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 {
   description = "Saint Shield reproducible development and verification environment";
 
@@ -8,6 +9,35 @@
       supportedSystems = [ "x86_64-linux" "aarch64-linux" ];
       forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
     in {
+      lib.dependencyMetadata.x86_64-linux =
+        let
+          pkgs = import nixpkgs { system = "x86_64-linux"; };
+          dpdk = pkgs.callPackage ./nix/dpdk-25.11.2.nix { };
+          licenseSpdx = package:
+            let
+              declared = package.meta.license;
+              licenses = if builtins.isList declared then declared else [ declared ];
+            in map (license:
+              license.spdxId or (throw "${package.pname or package.name} license lacks an SPDX identifier")
+            ) licenses;
+          entry = name: package: {
+            inherit name;
+            version = package.version;
+            license_spdx = licenseSpdx package;
+          };
+        in {
+          runtime_build = [
+            (entry "Zig" pkgs.zig)
+            (entry "DPDK" dpdk)
+          ];
+          test_tooling = [
+            (entry "AFL++" pkgs.aflplusplus)
+            (entry "Scapy" pkgs.python3Packages.scapy)
+            (entry "TLA+ tools" pkgs.tlaplus)
+            (entry "check-jsonschema" pkgs.check-jsonschema)
+          ];
+        };
+
       packages = forAllSystems (system:
         let
           pkgs = import nixpkgs { inherit system; };

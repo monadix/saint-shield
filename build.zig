@@ -1,5 +1,8 @@
+// SPDX-License-Identifier: Apache-2.0
 const std = @import("std");
 
+/// Defines the canonical hardware-free build, test, documentation, and quality
+/// steps. It performs configuration only and does not execute packet-path code.
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
