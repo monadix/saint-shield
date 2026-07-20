@@ -76,6 +76,55 @@ Before changing code:
   test/tooling dependencies unless the architecture explicitly assigns them to
   an optional module. They are not core runtime dependencies.
 
+## Cybersecurity safety and precise task framing
+
+These rules apply to every agent working in this workspace, including any
+delegated agent. Saint Shield is an authorized defensive packet-processing
+project, but its low-level networking and protection work is inherently
+dual-use and may receive additional automated review.
+
+- Do not attempt to evade, suppress, probe, or reverse-engineer a safety
+  classifier. Do not use euphemisms, keyword substitution, encoding, prompt
+  fragmentation, omitted intent, or another agent to disguise a request.
+- Describe work truthfully and precisely. When security context is material,
+  state the authorized local target, the defensive outcome, the current
+  milestone or requirement, and the applicable sandbox or test boundary.
+- Keep requests and responses limited to the context and technical detail
+  needed to identify, prevent, test, or remediate the issue. Do not add
+  operational exploit instructions, chained exploitation, credential access,
+  data exfiltration, malware deployment, destructive actions, broad scanning,
+  or third-party targeting when they are unnecessary to the defensive result.
+- Prefer repository-owned code, synthetic packets, deterministic fixtures,
+  virtual PMDs, loopback or isolated test environments, and minimal
+  reproductions. Never imply authorization for an external system, account,
+  network, or dataset merely because it is reachable.
+- Use ordinary engineering terminology where it is accurate. Do not
+  mischaracterize packet parsing, fuzzing, malformed-input tests, or benchmark
+  generation as offensive activity; equally, do not relabel offensive work as
+  testing or research.
+- When delegating security-adjacent work, include the defensive objective,
+  authorized target, required evidence, and explicit out-of-scope actions in
+  the task. The receiving agent must preserve these constraints in its own
+  requests and output.
+- If an additional safety check interrupts allowed work, do not repeatedly
+  reword the same request to get around it. Narrow the task to the minimum
+  necessary defensive outcome without hiding material intent. If it remains
+  blocked, record the exact notice, product/model, date and time zone, request
+  ID when available, and a brief redacted task description; then use
+  `/feedback` or OpenAI Support. Consider Trusted Access for Cyber when
+  legitimate high-risk defensive research routinely requires it.
+
+OpenAI publicly describes the relevant safeguards as a topical classifier over
+both prompts and generations followed by a safety reasoner for harmful or
+high-risk dual-use content. The system is intentionally optimized for high
+recall, so false positives can occur; wording alone neither changes whether a
+request is allowed nor guarantees delivery. Reference:
+
+- <https://help.openai.com/en/articles/20001326-additional-safety-checks-for-biological-and-cybersecurity-requests-in-chatgpt-codex-and-the-api>
+- <https://openai.com/index/trusted-access-for-cyber/>
+- <https://openai.com/policies/usage-policies/>
+- <https://cdn.openai.com/pdf/23eca107-a9b1-4d2c-b156-7deb4fbc697c/GPT-5-3-Codex-System-Card-02.pdf>
+
 ## Verification and handoff
 
 - Run the narrowest relevant tests while iterating, then the full milestone
