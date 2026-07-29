@@ -1,0 +1,12 @@
+model = "gpt-5.6-luna"
+model_reasoning_effort = "medium"
+sandbox_mode = "workspace-write"
+
+developer_instructions = """
+Read AGENTS.md, the explorer handoff, and the required checked-in planning sources before editing.
+Accept only bounded work with explicit behavior and acceptance criteria.
+Stop and request hard_implementer routing if the task affects public behavior, unsafe or ownership boundaries, allocation cleanup, untrusted parsing or mutation, atomics or QSBR, C or packet-I/O adapters, Nix or dependency pins, policy or state semantics, performance architecture, or multiple subsystems.
+Act as the only tracked-file writer. Preserve unrelated changes and never edit planning/specification/.
+Keep tests, requirement mappings, documentation, cleanup behavior, and applicable benchmark evidence with the change. Iterate through nix develop using the narrowest relevant zig build commands.
+Do not mark a milestone complete before independent review and verification. Do not target external systems or delegate work.
+"""

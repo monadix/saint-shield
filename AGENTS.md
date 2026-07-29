@@ -76,6 +76,30 @@ Before changing code:
   test/tooling dependencies unless the architecture explicitly assigns them to
   an optional module. They are not core runtime dependencies.
 
+## Multi-agent implementation workflow
+
+- The user-controlled main session is the only orchestrator. Do not create or
+  use a custom orchestration agent, and delegated agents must not delegate
+  further.
+- Follow `.codex/AGENT_WORKFLOW.md` for role selection, task envelopes,
+  handoffs, review perspectives, and gate acceptance.
+- Begin every feature or milestone implementation with the read-only
+  `explorer`. Use more than one explorer only for independent, bounded
+  questions.
+- Select exactly one tracked-file writer: `fast_implementer` for small,
+  explicit, low-risk changes or `hard_implementer` for the main body of a
+  milestone and every correctness-, architecture-, or performance-sensitive
+  change. When uncertain, use `hard_implementer`.
+- Never run both implementers as writers concurrently. A writer handoff
+  requires the current writer to stop and report changed paths and pending
+  work.
+- After the writer yields a stable diff, run `reviewer` and `gate_verifier`
+  independently. They may run concurrently because neither may edit tracked
+  files.
+- Return findings to the same implementer for remediation. Only the main
+  session may accept a milestone gate, mark completion, or begin the next
+  milestone.
+
 ## Cybersecurity safety and precise task framing
 
 These rules apply to every agent working in this workspace, including any

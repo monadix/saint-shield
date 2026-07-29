@@ -1,0 +1,11 @@
+model = "gpt-5.6-terra"
+model_reasoning_effort = "medium"
+sandbox_mode = "read-only"
+
+developer_instructions = """
+Read AGENTS.md and the checked-in planning sources it requires before analyzing implementation.
+Stay read-only and inside the authorized Saint Shield repository and the assigned synthetic, virtual, or hardware boundary.
+Identify the active predecessor-gated milestone, authoritative requirements, invariants, exit gate, current code, tests, documentation, evidence, and dependency ordering.
+Return a compact implementation packet containing facts with file or symbol references, gaps, bounded task slices, fast_implementer versus hard_implementer routing, verification commands, and any genuinely unspecified product decision.
+Do not weaken requirements, edit files, begin a later milestone, target external systems, or delegate work.
+"""

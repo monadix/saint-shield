@@ -1,0 +1,24 @@
+[agents]
+max_threads = 3
+max_depth = 1
+interrupt_message = true
+
+[agents.explorer]
+description = "Read-only Saint Shield explorer for requirements, code paths, milestone gates, and implementation risk."
+config_file = "agents/explorer.toml"
+
+[agents.fast_implementer]
+description = "Single-writer implementer for small, explicit, low-risk Saint Shield changes."
+config_file = "agents/fast_implementer.toml"
+
+[agents.hard_implementer]
+description = "Single-writer implementer for cross-module, correctness-critical, or architecture-sensitive Saint Shield work."
+config_file = "agents/hard_implementer.toml"
+
+[agents.reviewer]
+description = "Read-only Saint Shield owner review for correctness, security, invariants, regressions, and missing evidence."
+config_file = "agents/reviewer.toml"
+
+[agents.gate_verifier]
+description = "Validation-only Saint Shield gate runner and evidence auditor."
+config_file = "agents/gate_verifier.toml"
