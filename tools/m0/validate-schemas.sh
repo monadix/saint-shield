@@ -9,6 +9,8 @@ check-jsonschema --check-metaschema bench/schemas/benchmark-result.schema.json
 check-jsonschema --check-metaschema bench/schemas/environment-manifest.schema.json
 check-jsonschema --schemafile bench/schemas/benchmark-result.schema.json \
     bench/examples/benchmark.m0v.json
+check-jsonschema --schemafile bench/schemas/benchmark-result.schema.json \
+    bench/examples/benchmark.m1.json
 check-jsonschema --schemafile bench/schemas/environment-manifest.schema.json \
     bench/examples/environment.m0v.json
 

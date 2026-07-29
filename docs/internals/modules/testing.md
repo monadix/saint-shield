@@ -57,8 +57,11 @@ a test must not alter the production code under observation.
 ## Tests and evidence
 
 Tests prove equal seeds reproduce equal PRNG values and trace overflow is
-bounded and explicit. M1 packet properties use exhaustive models, so they do
-not need a random seed to cover their finite state spaces.
+bounded and explicit. M1 packet properties use an independent exhaustive token
+model and deterministic synthetic queue scenarios, so they do not need a
+random seed to cover their finite state spaces. The canonical
+`docs/requirements/coverage.yaml` map is checked for known/unique M1 IDs,
+existing design/code paths, named tests, and passing-claim evidence.
 
 ## Alternatives and evolution
 

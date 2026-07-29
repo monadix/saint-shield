@@ -28,7 +28,8 @@ interface inside the shell; no global package installation is needed.
 | `zig build fuzz-smoke` | Run the bounded D-012 local fixture workflow. |
 | `zig build schemas` | Validate benchmark/environment examples. |
 | `zig build integrity` | Verify versions, hashes, licenses, and source manifests. |
-| `zig build ci` | Run the complete M0-V hardware-free gate. |
+| `zig build ci-m0-v` | Run the complete M0-V hardware-free gate. |
+| `zig build ci` | Run the cumulative current-milestone gate (M1). |
 
 Select semantics with `-Doptimize=Debug`, `ReleaseSafe`, or `ReleaseFast`.
 

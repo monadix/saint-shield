@@ -1,0 +1,17 @@
+{
+  "schema": "saint-shield-bench/v1",
+  "run_id": "m1-synthetic-traversal",
+  "timestamp_utc": "2026-07-29T00:00:00Z",
+  "git_commit": "m1-working-tree",
+  "dirty": true,
+  "build": {"zig": "0.16.0", "mode": "ReleaseFast", "target": "x86_64-linux-gnu", "features": ["synthetic", "packet-path-instrumentation"]},
+  "environment": "bench/examples/environment.m0v.json",
+  "backend": {"name": "synthetic", "version": "m1", "mode": "host-local"},
+  "application": {"pipeline": [], "generation_digest": "not-applicable-m1", "batch_max": 64, "resources": {"configured_max_packet_bytes": 256}},
+  "traffic": {"generator": "deterministic-synthetic-traversal", "frame_profile": "linear-and-segmented-sizes-0-through-256", "protocol": "opaque-bytes", "flows": 0, "offered_pps": 0, "duration_s": 0.001},
+  "methodology": {"preflight": "pre-receive-queue-segment-identity-through-output", "warmup_seconds": 0, "independent_run": 1, "independent_runs": 1, "load_order": "ascending-size-linear-then-segmented", "zero_loss_search": "not-applicable", "timestamp_method": "deterministic-test-clock", "timestamp_resolution_ns": 1, "generator_headroom_ratio": 0, "adapted_standards": [], "rejection_checks": ["zero-abstraction-payload-copy", "zero-packet-path-general-allocation", "allocation-guard-negative-control", "copy-guard-negative-control", "not-production-capacity"]},
+  "result": {"rx_pps": 0, "tx_pps": 0, "loss_packets": 0, "latency_ns": {"p50": 0, "p99": 0, "p999": 0, "max": 0}, "cpu": {}, "perf": {"traversed_packets": 514, "traversed_payload_bytes": 65792, "receive_calls": 9, "submit_calls": 514, "borrowed_segment_operations": 1799, "pre_receive_identity_matches": 1799, "abstraction_payload_copy_bytes": 0, "allocation_guard_negative_control": true, "copy_guard_negative_control": true}, "memory_bytes": {"packet_path_general_allocations": 0}},
+  "valid": true,
+  "invalid_reason": null,
+  "raw_files": ["bench/micro/m1_regression.zig"]
+}

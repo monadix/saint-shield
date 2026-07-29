@@ -59,6 +59,10 @@ Before changing code:
   that actually prevents progress, and record the precise unblock condition.
 - Do not begin the main body of the next milestone until the predecessor gate
   passes. Clearly label later-risk work as a spike.
+- Keep the progress ledger compact: record milestone starts, blocked or
+  reopened states, material gate changes, and final acceptance. Keep individual
+  findings, remediation chronology, and command output in the applicable
+  milestone or process evidence closure register.
 
 ## Build and dependency workflow
 
@@ -76,6 +80,48 @@ Before changing code:
   test/tooling dependencies unless the architecture explicitly assigns them to
   an optional module. They are not core runtime dependencies.
 
+## Change classification
+
+Before delegation, the main session records one lane from the highest semantic
+effect of the proposed work. File extension, diff size, and file count never
+lower classification.
+
+- **Lane 1 - mechanical documentation:** spelling, formatting, or an equivalent
+  link correction only, with no change to normative, product, API, authority,
+  gate, evidence, milestone, build, or security meaning. The main session
+  performs focused reconnaissance, selects exactly one `fast_implementer`, and
+  requires only affected documentation, link, and diff checks. Do not activate
+  an explorer, reviewer, verifier, or findings register.
+- **Lane 2 - governance or semantic documentation:** agent rules, execution
+  plans, CI instructions, evidence claims, milestone records, security
+  guidance, or other semantic documentation that does not change
+  product/runtime behavior. These protected surfaces are Lane 2 minimum even
+  for a tiny diff. Use main-session reconciliation or one `explorer`, exactly
+  one `fast_implementer`, one independent governance/authority `reviewer`, and
+  focused validation. A `gate_verifier` is mandatory when the diff changes
+  governance/process-only authority boundaries, documentary workflow gate
+  definitions or commands, acceptance-evidence statements, or milestone
+  acceptance facts; normally omit it otherwise. Lane 2 may document process
+  routing and checks, but it cannot change product or milestone correctness or
+  performance gates, acceptance criteria, required milestone command sets, or
+  executable wiring. Any such change is Lane 3. Record only material
+  actionable findings that require remediation as
+  `PROC-<PERSPECTIVE>-NNN` in `evidence/process/REVIEW.md`.
+- **Lane 3 - product or milestone:** runtime, API, test, build, schema, or
+  tooling behavior; executable CI wiring; milestone implementation or evidence
+  generation; requirements-mapping behavior; correctness/performance gates; or
+  any mixed change containing these. Use the full workflow below.
+
+Only the main session classifies or reclassifies work. Doubt escalates upward;
+there is no silent downgrade. Mixed work takes its highest lane unless split
+into genuinely independent envelopes, never to evade review. A writer that
+discovers scope outside its lane stops and reports it. Exactly one physical
+writer, no descendant delegation, and the security-adjacent task-envelope
+rules apply in every lane. The discovering reviewer or verifier exclusively
+decides and declares finding closure. The main session exclusively controls
+classification/reclassification, orchestration, process or milestone
+acceptance, completion, and progression.
+
 ## Multi-agent implementation workflow
 
 - The user-controlled main session is the only orchestrator. Do not create or
@@ -83,22 +129,36 @@ Before changing code:
   further.
 - Follow `.codex/AGENT_WORKFLOW.md` for role selection, task envelopes,
   handoffs, review perspectives, and gate acceptance.
-- Begin every feature or milestone implementation with the read-only
-  `explorer`. Use more than one explorer only for independent, bounded
-  questions.
-- Select exactly one tracked-file writer: `fast_implementer` for small,
-  explicit, low-risk changes or `hard_implementer` for the main body of a
-  milestone and every correctness-, architecture-, or performance-sensitive
-  change. When uncertain, use `hard_implementer`.
+- Begin every Lane 3 feature or milestone envelope with the read-only
+  `explorer`. One activation covers focused remediation while that bounded
+  envelope remains unchanged; re-explore after a material scope, requirement,
+  public-behavior, architecture, or relevant repository-state change, or when
+  milestone-exit reconciliation has not occurred.
+- Before activating the Lane 3 writer for correctness-sensitive work, the main
+  session must record an adversarial contract review, select the applicable
+  independent reviewer perspectives, and name both the focused preflight and
+  final exact-tree gate commands.
+- Select exactly one tracked-file writer according to the recorded lane.
+  Within Lane 3, use `fast_implementer` for small, explicit, low-risk changes
+  or `hard_implementer` for the main body of a milestone and every
+  correctness-, architecture-, or performance-sensitive change. When
+  uncertain, use `hard_implementer`.
 - Never run both implementers as writers concurrently. A writer handoff
   requires the current writer to stop and report changed paths and pending
   work.
-- After the writer yields a stable diff, run `reviewer` and `gate_verifier`
-  independently. They may run concurrently because neither may edit tracked
-  files.
-- Return findings to the same implementer for remediation. Only the main
-  session may accept a milestone gate, mark completion, or begin the next
-  milestone.
+- After a Lane 3 writer yields a stable diff, run `reviewer` and
+  `gate_verifier` independently. Intermediate verification uses focused
+  affected checks; run the full exact-tree gate after all blocking findings
+  close.
+- Give every registered Lane 2 or Lane 3 finding a stable ID and return it to
+  the same implementer for remediation. The implementer declares it
+  `addressed`; the reviewer or verifier that discovered it reruns the required
+  checks and alone may declare it `closed`. These read-only roles report
+  status; they do not edit tracked files.
+- Only the main session may decide to accept a milestone gate, decide that a
+  milestone is complete, or begin the next milestone. It directs the selected
+  sole writer to record those decisions; this does not grant the writer closure
+  or acceptance authority or make the main session a second writer.
 
 ## Cybersecurity safety and precise task framing
 
@@ -151,8 +211,12 @@ request is allowed nor guarantees delivery. Reference:
 
 ## Verification and handoff
 
-- Run the narrowest relevant tests while iterating, then the full milestone
-  gate before completion.
+- For Lane 3, run the narrowest relevant tests while iterating, then one final
+  exact-tree full milestone gate after blocking findings close. Repeat that
+  full gate after any corrective tree change caused by a gate failure.
+- Acceptance-only evidence or ledger edits after a passing gate require only
+  the affected documentation, schema, link, and diff checks unless executable
+  or gate inputs changed.
 - Test Debug and ReleaseSafe semantics continuously; include ReleaseFast at the
   M0-V and milestone exit gates.
 - Randomized tests must print a reproducible seed and minimized trace.

@@ -61,6 +61,26 @@ pub fn build(b: *std.Build) void {
     const bench_step = b.step("bench", "Run the synthetic M0-V benchmark smoke");
     bench_step.dependOn(&run_bench.step);
 
+    const m1_bench_module = b.createModule(.{
+        .root_source_file = b.path("bench/micro/m1_regression.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    m1_bench_module.addImport("saint_shield", saint_module);
+    m1_bench_module.addAnonymousImport("benchmark_m1_json", .{
+        .root_source_file = b.path("bench/examples/benchmark.m1.json"),
+    });
+    const m1_bench = b.addExecutable(.{
+        .name = "m1-synthetic-regression",
+        .root_module = m1_bench_module,
+    });
+    const run_m1_bench = b.addRunArtifact(m1_bench);
+    const m1_bench_step = b.step(
+        "m1-bench",
+        "Run M1 synthetic zero-copy regression evidence (not capacity)",
+    );
+    m1_bench_step.dependOn(&run_m1_bench.step);
+
     const docs = library.getEmittedDocs();
     const install_docs = b.addInstallDirectory(.{
         .source_dir = docs,
@@ -110,8 +130,20 @@ pub fn build(b: *std.Build) void {
     addCommandStep(b, "docs-check", "Validate authored documentation links", &.{
         "sh", "tools/m0/docs-check.sh",
     });
-    addCommandStep(b, "ci", "Run the complete hardware-free M0-V CI gate", &.{
+    addCommandStep(b, "coverage", "Validate the M1 requirement and evidence map", &.{
+        "python3", "tools/m1/validate-coverage.py",
+    });
+    addCommandStep(b, "coverage-self-test", "Run M1 coverage validator negative controls", &.{
+        "python3", "tools/m1/validate-coverage.py", "--self-test",
+    });
+    addCommandStep(b, "version-consistency", "Validate the exact M1 package/API/coverage version", &.{
+        "python3", "tools/m1/validate-version.py",
+    });
+    addCommandStep(b, "ci-m0-v", "Run the independently invocable M0-V CI gate", &.{
         "sh", "tools/m0/ci.sh",
+    });
+    addCommandStep(b, "ci", "Run the complete cumulative hardware-free M1 CI gate", &.{
+        "sh", "tools/m1/ci.sh",
     });
 }
 

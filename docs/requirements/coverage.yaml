@@ -1,0 +1,117 @@
+# SPDX-License-Identifier: Apache-2.0
+# Canonical implementation coverage map, currently scoped through M1.
+# Future-milestone IDs are added only when their implementation evidence exists;
+# the normative catalogue remains source-requirements/requirements.yaml.
+- id: FR-PKT-001
+  design: docs/internals/modules/packet.md
+  code:
+    - src/packet/root.zig
+  tests:
+    - "FR-PKT-001 batch sizes zero through 64 are valid and 65 is rejected"
+  status: passing
+  since: 0.1.0-m1
+
+- id: FR-PKT-002
+  design: docs/internals/modules/packet.md
+  code:
+    - src/packet/root.zig
+    - src/io/synthetic/root.zig
+  tests:
+    - "FR-PKT-002 FR-PKT-003 FR-PKT-012 INV-PKT-002 pointer-free owner-bound handles resist escape reuse forging and iterator mutation"
+    - "FR-PKT-002 every possible segment split preserves packet bytes and receive order"
+  status: passing
+  since: 0.1.0-m1
+
+- id: FR-PKT-003
+  design: docs/internals/modules/packet.md
+  code:
+    - src/packet/root.zig
+  tests:
+    - "FR-PKT-002 FR-PKT-003 FR-PKT-012 INV-PKT-002 pointer-free owner-bound handles resist escape reuse forging and iterator mutation"
+  status: passing
+  since: 0.1.0-m1
+
+- id: FR-PKT-004
+  design: docs/internals/modules/io.md
+  code:
+    - src/io/synthetic/root.zig
+  tests:
+    - "FR-PKT-004 partial receive, scripted failure, backpressure, and delayed completion are deterministic"
+    - "FR-PKT-004 receive accepts requested batch sizes zero through 64 and rejects 65"
+  status: passing
+  since: 0.1.0-m1
+
+- id: FR-PKT-006
+  design: docs/internals/modules/packet.md
+  code:
+    - src/packet/root.zig
+  tests:
+    - "FR-PKT-006 all ranges cover 1 through 16 segments and empty boundaries"
+  status: passing
+  since: 0.1.0-m1
+
+- id: FR-PKT-011
+  design: docs/internals/modules/packet.md
+  code:
+    - src/packet/root.zig
+    - src/io/synthetic/root.zig
+  tests:
+    - "FR-PKT-011 INV-PKT-001 exact token completion detects double and missing completion"
+  status: passing
+  since: 0.1.0-m1
+
+- id: FR-PKT-012
+  design: docs/internals/modules/packet.md
+  code:
+    - src/packet/root.zig
+  tests:
+    - "FR-PKT-002 FR-PKT-003 FR-PKT-012 INV-PKT-002 pointer-free owner-bound handles resist escape reuse forging and iterator mutation"
+  status: passing
+  since: 0.1.0-m1
+
+- id: FR-TEST-002
+  design: docs/internals/modules/testing.md
+  code:
+    - src/io/synthetic/root.zig
+    - src/io/pcap/root.zig
+  tests:
+    - "FR-TEST-002 INV-PKT-001 PERF-CORE-004 linear and segmented packet sizes traverse unchanged with borrowed identity and no packet-path allocation or payload copy"
+    - "classic PCAP parses both byte orders and timestamp resolutions"
+  status: passing
+  since: 0.1.0-m1
+
+- id: INV-PKT-001
+  design: docs/internals/modules/packet.md
+  code:
+    - src/packet/root.zig
+    - src/io/synthetic/root.zig
+  tests:
+    - "INV-PKT-001 independent reference model exhausts bounded operation sequences through the real tracker"
+    - "FR-PKT-011 INV-PKT-001 exact token completion detects double and missing completion"
+    - "INV-PKT-001 synthetic receive failures are transactional and queue outcomes match the reference states"
+    - "INV-PKT-001 independent queue model exhausts backpressure failure delayed completion and shutdown sequences"
+    - "FR-TEST-002 INV-PKT-001 PERF-CORE-004 linear and segmented packet sizes traverse unchanged with borrowed identity and no packet-path allocation or payload copy"
+  status: passing
+  since: 0.1.0-m1
+
+- id: INV-PKT-002
+  design: docs/internals/modules/packet.md
+  code:
+    - src/packet/root.zig
+  tests:
+    - "FR-PKT-002 FR-PKT-003 FR-PKT-012 INV-PKT-002 pointer-free owner-bound handles resist escape reuse forging and iterator mutation"
+    - "INV-PKT-002 owner identities reject every cross-owner handle and exhaust without reuse"
+    - "INV-PKT-002 public handle surface contains no backing pointers or mutable generation fields"
+  status: passing
+  since: 0.1.0-m1
+
+- id: PERF-CORE-004
+  design: docs/internals/modules/io.md
+  code:
+    - src/io/synthetic/root.zig
+    - bench/micro/m1_regression.zig
+  tests:
+    - "FR-TEST-002 INV-PKT-001 PERF-CORE-004 linear and segmented packet sizes traverse unchanged with borrowed identity and no packet-path allocation or payload copy"
+    - "PERF-CORE-004 allocation and abstraction-copy negative controls trip the packet-path guard"
+  status: passing-synthetic-regression-only
+  since: 0.1.0-m1

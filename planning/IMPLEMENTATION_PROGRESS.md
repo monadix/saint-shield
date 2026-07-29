@@ -1,10 +1,19 @@
 # Saint Shield Implementation Progress
 
-Last updated: 2026-07-19
+Last updated: 2026-07-29
 
 This is the canonical implementation ledger. It reports progress and evidence;
 it does not override requirements or technical decisions. Update it only when
 the corresponding implementation or verification evidence exists.
+
+Keep this ledger compact: record milestone starts, blocked or reopened states,
+material gate changes, and final acceptance. Store individual findings,
+remediation chronology, and command output in the applicable milestone or
+process evidence closure register.
+
+Standalone process maintenance does not update the milestone ledger unless it
+changes milestone status, gate or evidence facts, or a recorded
+decision/exception.
 
 ## Status rules
 
@@ -26,7 +35,7 @@ do not change milestone status.
 | --- | --- | --- | --- | --- |
 | M0-V - virtual toolchain and risk foundation | Complete | 2026-07-19 | 2026-07-19 | Full isolated-cache CI and standalone all-system flake evaluation pass; exact evidence is recorded in `evidence/m0-v/VERIFICATION.md`. |
 | M0-H - physical testbed contract | Not started | - | - | Deferred until hardware exists. |
-| M1 - foundation, ownership, and views | In progress | 2026-07-19 | - | Expected gate: INV-PKT-001/002 exhaustive small-state synthetic ownership/lifetime checks and unchanged zero-copy traversal for sizes 0 through the configured maximum according to adapter policy. |
+| M1 - foundation, ownership, and views | Complete | 2026-07-19 | 2026-07-29 | Independent review closure is recorded in [evidence/m1/REVIEW.md](../evidence/m1/REVIEW.md); the gate verifier reproduced both manifests, cumulative CI, and diff checks as recorded in `evidence/m1/VERIFICATION.md`. |
 | M2 - parsing, dispositions, and mutation | Not started | - | - | - |
 | M3 - native processor contract and static pipeline | Not started | - | - | - |
 | M4 - DPDK adapter and physical ownership loop | Not started | - | - | Requires M0-H. |
@@ -69,23 +78,29 @@ Evidence:
 
 ### M1 checklist
 
-- [ ] Stable identifiers, bounded errors, budgets, and testable time exist.
-- [ ] Adapter-token state machine and exact completion accounting exist.
-- [ ] Segment-aware `PacketView`, origin, slots, and lifetime checks exist.
-- [ ] Synthetic queues provide deterministic failure/backpressure behavior.
-- [ ] Bounded PCAP support and fuzz corpus exist.
-- [ ] All ranges, truncations, malformed descriptors, and allocation failures
+- [x] Stable identifiers, bounded errors, budgets, and testable time exist.
+- [x] Adapter-token state machine and exact completion accounting exist.
+- [x] Segment-aware `PacketView`, origin, slots, and lifetime checks exist.
+- [x] Synthetic queues provide deterministic failure/backpressure behavior.
+- [x] Bounded PCAP support and fuzz corpus exist.
+- [x] All ranges, truncations, malformed descriptors, and allocation failures
       are tested.
-- [ ] Sizes through configured maximum traverse unchanged without payload copy.
-- [ ] INV-PKT-001 and INV-PKT-002 pass with documented evidence.
+- [x] Sizes through configured maximum traverse unchanged without payload copy.
+- [x] INV-PKT-001 and INV-PKT-002 pass with documented evidence.
 
 Evidence:
 
-- Commands: _pending_
-- Requirement/test mapping: _pending_
-- Fuzz/property artifacts: _pending_
-- Benchmark delta: _pending_
-- Known limitations: _pending_
+- Commands: `nix develop --command zig build ci`; narrow commands and results
+  are recorded in `evidence/m1/VERIFICATION.md`.
+- Review closure register:
+  [evidence/m1/REVIEW.md](../evidence/m1/REVIEW.md).
+- Requirement/test mapping: validated `docs/requirements/coverage.yaml`.
+- Fuzz/property artifacts: `test/fuzz/pcap-corpus/`; independent exhaustive
+  token and queue models in the M1 tests.
+- Benchmark delta: first schema-validated M1 synthetic baseline at
+  `bench/examples/benchmark.m1.json`; no prior comparable M1 delta.
+- Known limitations: synthetic/virtual regression only; 256-byte configured
+  regression maximum; AArch64 build-tested only.
 
 ### M2 checklist
 
@@ -153,3 +168,5 @@ ledger status. Keep command output in test/benchmark artifacts, not pasted here.
 | 2026-07-19 | M0-V | Reopened after independent review found exit-gate gaps. | Remediation must pass all-system flake evaluation, a Zig-observed real mbuf batch boundary with deterministic cleanup accounting, Zig-instrumented AFL coverage, corrected timeout/license/schema evidence, and documentation/API requirements. | Correct M0-V only; do not begin M1 or mark complete before review and project-license reconciliation. |
 | 2026-07-19 | M0-V | Completed review remediation and reconciled evidence. | `nix develop --command zig build ci` passed from isolated Zig caches; standalone `nix flake check --no-build --all-systems`, schema, locked-license, DPDK lifecycle, Zig-branch fuzz, documentation, formatting, and diff checks passed. Exact results: `evidence/m0-v/VERIFICATION.md`. | M1 is the next predecessor-gated action; M0-H remains deferred and mandatory before M4. |
 | 2026-07-19 | M1 | Began foundation, packet ownership, views, bounded capture, and deterministic synthetic adapter implementation. | Expected gate: exact token completion and stale-view detection for INV-PKT-001/002, full range/segment/descriptor/allocation-failure coverage, fuzzable bounded PCAP parsing, and unchanged zero-payload-copy traversal through the configured maximum in all three build modes. | Implement and verify M1 only; do not begin M2. |
+| 2026-07-29 | M1 | Closed the independent review findings: hardened owner lifetime and unique pointer-free provenance, cross-owner/stale/forged-handle rejection, iterator validation, transactional receive, allocation/copy instrumentation, negative controls, artifact binding, coverage validation, and version consistency. | The retrospective closure register is [evidence/m1/REVIEW.md](../evidence/m1/REVIEW.md); commands, artifacts, results, and limitations are retained in `evidence/m1/VERIFICATION.md`. | Final independent ownership review and gate verification. |
+| 2026-07-29 | M1 | Accepted M1 after final independent review found no blocking issue and independent gate verification reproduced both immutable manifests, the exact cumulative CI gate, and `git diff --check`. | M1 status is Complete; review closure is recorded in [evidence/m1/REVIEW.md](../evidence/m1/REVIEW.md), and authoritative gate evidence is recorded in `evidence/m1/VERIFICATION.md`. | M2 is the next predecessor-gated action and remains Not started; M0-H remains deferred until required before M4. |

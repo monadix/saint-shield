@@ -107,6 +107,34 @@ tests, requirement links, documentation, benchmark delta, and cleanup/failure
 evidence satisfy the archived roadmap. Update `IMPLEMENTATION_PROGRESS.md` only
 from verified implementation and test evidence.
 
+### L-007: Semantic-risk workflow lanes
+
+Classify each change by semantic effect, never file extension, diff size, or
+file count:
+Lane 1 for purely mechanical documentation, Lane 2 for governance or semantic
+documentation without product/runtime effect, and Lane 3 for product,
+milestone, executable gate, requirements-mapping, or mixed higher-risk work.
+Protected governance, evidence, gate, milestone, and security surfaces are
+Lane 2 minimum. Doubt and scope expansion escalate upward; silent downgrade,
+review-evasion splitting, and writer self-reclassification are prohibited.
+Lane 2 may document process routing and checks, with verification mandatory
+when process authority, documentary workflow gates, acceptance evidence, or
+milestone acceptance facts change. Product/milestone gates, acceptance
+criteria, required command sets, and executable wiring remain Lane 3.
+
+Lane 3 retains adversarial contract review, staged focused verification,
+stable milestone findings, independent review, and a final exact-tree gate.
+Material Lane 2 findings use `evidence/process/REVIEW.md`; Lane 1 and clean or
+non-material Lane 2 reviews create no findings. Exactly one physical writer,
+no descendant delegation, and security-adjacent task envelopes apply in every
+lane. Discovering reviewers/verifiers exclusively decide finding closure; the
+main session exclusively controls classification/reclassification,
+orchestration, acceptance, completion, and progression.
+
+This is execution discipline only. It does not change normative requirements,
+the accepted architecture, milestone scope, or any archived or local
+acceptance gate.
+
 ## M0-V through M3 implementation contract
 
 ### M0-V: reproducible virtual foundation

@@ -13,6 +13,9 @@ nix develop
 zig build ci
 ```
 
+`zig build ci` is the cumulative M1 gate. The predecessor gate remains
+separately runnable as `zig build ci-m0-v`.
+
 The shell pins Zig 0.16.0, a custom DPDK 25.11.2 derivation, Scapy 2.7.0,
 and TLA+ 1.7.4; the x86-64 shell also pins AFL++ 5.00c. DPDK tests use
 `--no-huge`, `--no-pci`, an in-memory EAL configuration, and the virtual ring

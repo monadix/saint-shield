@@ -23,7 +23,10 @@ allocation. `pcap.Capture.parseAlloc` copies validated records into caller-owned
 storage. `pcap.writeAlloc` emits deterministic version-2.4 captures. Every entry
 point requires `pcap.Limits`, including an explicit zero-length-record policy.
 The [PCAP fixture guide](../../user/pcap-fixtures.md) documents the supported
-surface. The DPDK compatibility API remains private test evidence.
+surface. Synthetic receive preflights a whole attempted burst and exposes a
+bounded later-slot descriptor-failure action; any failure leaves token states,
+receive order, cursors, sequence, and caller slots unchanged. The DPDK
+compatibility API remains private test evidence.
 
 ## Dependencies
 
@@ -58,7 +61,8 @@ do not add packet-path allocation.
 PCAP reports truncated, malformed, unsupported, configured-limit, and arithmetic
 failures as distinct stable categories with detailed error tags. Allocation
 failure propagates and every constructor path is cleanup-swept. Existing DPDK
-failure injection continues to reconcile all virtual tokens.
+failure injection continues to reconcile all virtual tokens. Synthetic input
+descriptor, token-state, and sequence-arithmetic failures are transactional.
 
 ## Security boundary
 
@@ -78,6 +82,14 @@ backend. M4 still benchmarks DPDK translation tax separately.
 PCAP unit tests cover every representable structure truncation, four endian and
 resolution variants, malformed lengths, timestamps, all limits, both zero-byte
 policies, deterministic output, error classes, and allocation-failure cleanup.
+Synthetic tests compare scripted backpressure, failure, delayed completion,
+shutdown, and later-slot receive failure against exact reference states after
+each operation. Linear and segmented payloads of every size 0 through 256
+retain queue-owned segment addresses captured before receive through output.
+A counting wrapper observes real calls to the allocators used by both queues;
+before/after traversal snapshots stay unchanged. The centralized
+abstraction-copy counter also stays unchanged, while intentional allocation and
+copy negative controls trip their respective guards.
 `zig build pcap-fuzz-smoke` decodes the reviewed corpus, replays it twice, checks
 Zig branch coverage, and runs a bounded AFL++ smoke. `zig build dpdk-smoke`
 retains the separate virtual token checks.

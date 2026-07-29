@@ -4,16 +4,18 @@
 
 `packet` defines backend-neutral input/output identities, input origin,
 adapter-token ownership states, receive-order slots, validated packet segments,
-read-only `PacketView`, ordered `PacketBatch`, and lifetime cookies. It does not
-receive or transmit packets, allocate payload storage, parse protocol headers,
-mutate packets, or choose final dispositions.
+read-only `PacketView`, ordered `PacketBatch`, and address-stable processing
+owners. It does not receive or transmit packets, allocate payload storage,
+parse protocol headers, mutate packets, or choose final dispositions.
 
 ## Requirements and invariants
 
 M1 maps FR-PKT-002/003/006/011/012 and the batch formation/time/resource prose
 needed by later pipeline work. Exact tracker transitions and shutdown
-reconciliation enforce INV-PKT-001. Address-stable batches invalidate a cookie
-at processing-call end to enforce INV-PKT-002 in safe code and tests.
+reconciliation enforce INV-PKT-001. One allocator-owned, address-stable
+`PacketBatchOwner` controls monotonic generations across call frames to enforce
+INV-PKT-002 in safe code and tests. A setup-only atomic allocator assigns every
+owner a process-unique, monotonic non-pointer identity without reuse.
 
 ## Public contract
 
@@ -21,8 +23,12 @@ at processing-call end to enforce INV-PKT-002 in safe code and tests.
 checked total-length arithmetic. `PacketView.contiguous` is the zero-copy fast
 path; `read` explicitly copies a requested range; `segments` iterates at most
 16 borrowed pieces. All byte ranges are bounds/overflow checked. A batch holds
-at most 64 slots, preserves strictly increasing receive order, permits empty or
-partial lengths, and must remain address-stable while views exist.
+at most 64 slots, preserves strictly increasing receive order, and permits
+empty or partial lengths. Public batch and view handles are fieldless numeric
+enums containing only owner-identity/generation/index tags; no public scalar
+contains an owner pointer or address. Every operation receives the valid opaque
+owner separately and validates identity first, then generation/index, before
+indexing private storage. Copying a batch preserves the same tags.
 
 Token transitions are:
 
@@ -46,29 +52,48 @@ imports an adapter. Adapters construct slots and invoke token transitions.
 ## Object lifecycle and ownership
 
 The adapter owns payload memory and `TokenTracker`. A slot and view borrow that
-storage. `PacketBatch.invalidate` ends the processing borrow; stale views return
-`StaleView`. The tracker and payload must outlive slots, and the batch object
-must outlive any attempted stale-view check. Escaping those backing pointers by
-unsafe casts is outside the safe contract.
+storage. Adapter/worker setup allocates an address-stable `PacketBatchOwner`;
+construction also assigns a process-unique identity through a thread-safe
+setup-only monotonic counter. The maximum identity is allocated once; later
+construction returns `OwnerIdentityExhausted` without wrap or reuse. `begin`
+copies bounded slot metadata but never payload and advances an owner-local
+generation that is never reset or reused. `PacketBatch.invalidate` ends the
+shared borrow for every batch copy. Stale batch operations return
+`BatchReleased`; every view/iterator operation returns `StaleView`, including
+after a handle escapes a processing-call frame. The owner, tracker, and payload
+must outlive all derived handles; owner destruction is allowed only after they
+are unreachable. Zero, random, modified, and cross-owner public scalar tags are
+safe inputs when paired with a valid owner and return bounded
+release/stale/bounds errors. Forging the opaque owner pointer or backing payload
+pointers remains outside the safe contract.
 
 ## Concurrency
 
-Tracker, slot, and batch mutation is single-worker-owned. There are no atomics,
-locks, waits, or cross-worker aliases in M1.
+Packet-path tracker, slot, batch, view, and iterator operations are
+single-worker-owned and use no atomics, locks, or waits. Owner construction has
+the only atomic activity: one setup-only monotonic identity allocation, with
+CAS retry if constructors race. M1 creates no cross-worker packet aliases.
 
 ## Allocation and work bounds
 
-Only `TokenTracker.init` allocates one fixed state array. Slot construction,
-views, range access, iteration, transitions, and batch construction allocate
-nothing. View work is O(segments), bounded by 16; shutdown verification is
-O(registered tokens).
+`TokenTracker.init` allocates one fixed state array and
+`PacketBatchOwner.init` allocates one fixed owner object. Slot construction,
+`PacketBatchOwner.begin`, views, range access, iteration, and transitions
+allocate nothing. View work is O(segments), bounded by 16; shutdown
+verification is O(registered tokens). `PacketPathInstrumentation` records
+adapter receive, output submit, borrowed segments, explicit `read` bytes, and
+the centralized abstraction-copy path without allocating itself. Synthetic
+queue allocation evidence comes from a wrapper around the real queue
+allocators, not a manually incremented packet counter.
 
 ## Failure behavior
 
 Malformed totals, oversized segment sets, descriptor/range arithmetic
 overflow, range bounds, stale borrows, invalid transitions, double completion,
-and missing completion are distinct bounded errors. Rejected transitions leave
-ownership unchanged.
+and missing completion are distinct bounded errors. Forged handle tags and
+adversarial iterator numeric state are revalidated on every operation.
+Iterator progress is recomputed from descriptors with checked arithmetic.
+Rejected transitions leave ownership unchanged.
 
 ## Security boundary
 
@@ -78,18 +103,32 @@ storage. Every public byte range checks both addition and final bounds.
 
 ## Performance budget
 
-Ordinary receive-to-output traversal borrows the adapter payload and records
-zero packet-path payload copies. Explicit `read` is a caller-requested copy and
-is not used by the forwarding traversal. M1 results are synthetic regression
-evidence, not production capacity claims.
+Ordinary receive-to-output traversal borrows the adapter payload. The regression
+captures every queue-owned segment address and length before receive, compares
+it through output submission, and checks zero abstraction-copy bytes plus zero
+real allocator activity. Explicit `read` increments its counter at the actual
+copy site and is not used by forwarding traversal. Intentional allocation and
+centralized-copy controls must trip the corresponding guards. M1 results are
+synthetic regression evidence, not production capacity claims.
 
 ## Tests and evidence
 
-Tests exhaust the six-state/action transition matrix, double/missing
-completion, allocation failure, malformed and overflowing descriptors, every
-range across every split of an eight-byte packet, zero-copy segment iteration,
-receive-order rejection, and stale-cookie behavior. Synthetic integration tests
-cover every size through its configured maximum.
+An independent state model drives every length-five sequence from the six token
+actions through the real tracker and compares state, errors, receive/completion
+counts, and shutdown reconciliation after each step. Other tests cover
+double/missing completion, invalid tokens, allocation failure, malformed and
+overflowing descriptors, all ranges over 1 through 16 segments including empty
+boundaries, batch sizes 0 through 64 plus 65 rejection, receive-order rejection,
+and stale behavior for all batch/view/iterator operations, caller-frame escape,
+copied aliases, later-generation reuse resistance, generation exhaustion, and
+a direct public-field audit. The same tests use zero, random, and modified
+batch/view tags plus maximum and inverted iterator range/progress state, proving
+bounded errors in all build modes. Two simultaneously live owners with
+different origins and packet lengths reject cross-owner batch access,
+invalidation, every view accessor, and iterator advancement without changing
+either owner. A private local-counter test proves identity exhaustion does not
+wrap or reuse. Synthetic integration covers linear and segmented payloads for
+every size through the configured maximum.
 
 ## Alternatives and evolution
 
