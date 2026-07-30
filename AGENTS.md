@@ -95,22 +95,27 @@ lower classification.
 - **Lane 2 - governance or semantic documentation:** agent rules, execution
   plans, CI instructions, evidence claims, milestone records, security
   guidance, or other semantic documentation that does not change
-  product/runtime behavior. These protected surfaces are Lane 2 minimum even
-  for a tiny diff. Use main-session reconciliation or one `explorer`, exactly
-  one `fast_implementer`, one independent governance/authority `reviewer`, and
-  focused validation. A `gate_verifier` is mandatory when the diff changes
-  governance/process-only authority boundaries, documentary workflow gate
-  definitions or commands, acceptance-evidence statements, or milestone
-  acceptance facts; normally omit it otherwise. Lane 2 may document process
-  routing and checks, but it cannot change product or milestone correctness or
-  performance gates, acceptance criteria, required milestone command sets, or
-  executable wiring. Any such change is Lane 3. Record only material
-  actionable findings that require remediation as
+  product/runtime behavior. Repo-local agent orchestration rules, role
+  instructions, and role wiring are Lane 2 when they do not change project
+  build/test/schema/CI/delivery tooling, requirements mappings, milestone
+  gates or commands, acceptance facts, or remote authority. These protected
+  surfaces are Lane 2 minimum even for a tiny diff. Use main-session
+  reconciliation or one `explorer`, exactly one `fast_implementer`, one
+  independent governance/authority `reviewer`, and focused validation. A
+  `gate_verifier` is mandatory when the diff changes governance/process-only
+  authority boundaries, documentary workflow gate definitions or commands,
+  acceptance-evidence statements, or milestone acceptance facts; normally
+  omit it otherwise. Lane 2 may document process routing and checks, but it
+  cannot change product or milestone correctness or performance gates,
+  acceptance criteria, required milestone command sets, or executable project
+  wiring. Any such change is Lane 3. Record only material actionable findings
+  that require remediation as
   `PROC-<PERSPECTIVE>-NNN` in `evidence/process/REVIEW.md`.
 - **Lane 3 - product or milestone:** runtime, API, test, build, schema, or
-  tooling behavior; executable CI wiring; milestone implementation or evidence
-  generation; requirements-mapping behavior; correctness/performance gates; or
-  any mixed change containing these. Use the full workflow below.
+  project build/test/schema/CI/delivery tooling behavior; executable CI wiring;
+  milestone implementation or evidence generation; requirements-mapping
+  behavior; correctness/performance gates; or any mixed change containing
+  these. Use the full workflow below.
 
 Only the main session classifies or reclassifies work. Doubt escalates upward;
 there is no silent downgrade. Mixed work takes its highest lane unless split
@@ -155,6 +160,12 @@ acceptance, completion, and progression.
   `addressed`; the reviewer or verifier that discovered it reruns the required
   checks and alone may declare it `closed`. These read-only roles report
   status; they do not edit tracked files.
+- The main session observes implementation-process friction, may activate the
+  read-only `process_reviewer`, and owns retrospective synthesis and final
+  reporting. `hard_implementer`, `reviewer`, and `gate_verifier` may each add
+  at most one concise evidence-backed process-friction observation only when
+  directly encountered; they do not brainstorm or provide an empty
+  retrospective field. `explorer` and `fast_implementer` remain task-only.
 - Only the main session may decide to accept a milestone gate, decide that a
   milestone is complete, or begin the next milestone. It directs the selected
   sole writer to record those decisions; this does not grant the writer closure
@@ -268,5 +279,6 @@ request is allowed nor guarantees delivery. Reference:
   regression evidence only, never production capacity claims.
 - Preserve unrelated user changes. Do not destructively reset or delete work.
 - End each implementation run with the achieved milestone status, changed
-  paths, verification evidence, unresolved limitations, and the next gated
-  action. Ensure `planning/IMPLEMENTATION_PROGRESS.md` matches that report.
+  paths, verification evidence, unresolved limitations, the next gated action,
+  and the retrospective result required by `.codex/AGENT_WORKFLOW.md`. Ensure
+  `planning/IMPLEMENTATION_PROGRESS.md` matches that report.

@@ -9,5 +9,6 @@ Do not modify, create, or delete tracked source, documentation, planning, or evi
 For a final Lane 3 gate, require the declared baseline and a clean, committed, non-WIP milestone branch tip. Record complete tracked and untracked status, commit ID, and tree ID before and after verification, and reject a changed tree, residual status, or wip(<id>) tip.
 Run the narrow checks first and then the applicable complete gate through nix develop and canonical zig build commands, including Debug, ReleaseSafe, ReleaseFast, fuzz, model, virtual-adapter, benchmark, or documentation checks required by the milestone. Bind the result to the exact reported commit and tree; any correction is a new commit and requires the full gate again.
 Audit requirement mappings, cleanup and allocation evidence, benchmark classification, known limitations, and progress claims.
+If you directly encounter process friction, you may append at most one concise evidence-backed observation; do not brainstorm and do not add an empty retrospective field.
 Report exact commands, exit status, artifact paths, reproducible seeds, the precise failing layer, and whether the tracked tree remained unchanged. Do not fix failures, target external systems, or delegate work.
 """

@@ -8,5 +8,6 @@ Read AGENTS.md and the authoritative requirements, architecture, milestone gate,
 For Lane 3 milestone work, require the declared local main baseline and branch tip, reject a wip(<id>) tip, inspect complete tracked and untracked status, and review the aggregate BASE..TIP range rather than the last commit alone. Report any base/branch mismatch or residual worktree state.
 Prioritize behavioral defects, invariant violations, unsafe or lifetime errors, resource bounds, failure atomicity, cleanup, security boundaries, zero-copy or performance regressions, missing tests, and unsupported gate claims.
 For every finding, provide severity, requirement or invariant, concrete file or symbol evidence, impact, reproduction or verification where possible, and a bounded remediation.
+If you directly encounter process friction, you may append at most one concise evidence-backed observation; do not brainstorm and do not add an empty retrospective field.
 Ignore style-only issues unless they conceal a real defect. Do not edit files, weaken requirements, target external systems, or delegate work. State explicitly when no blocking finding remains and list residual risks.
 """

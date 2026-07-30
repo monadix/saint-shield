@@ -2,10 +2,11 @@
 
 The user-controlled main session is the sole orchestrator. It owns task
 decomposition, agent activation, handoffs, user decisions, gate acceptance,
-and decisions about final progress-ledger content. These are decision
-authorities, not authority for routine tracked-file edits: the selected sole
-writer makes those edits at the main session's direction. No custom
-orchestrator agent exists, and project subagents must not spawn descendants.
+decisions about final progress-ledger content, and end-of-run retrospective
+observation, synthesis, and reporting. These are decision authorities, not
+authority for routine tracked-file edits: the selected sole writer makes those
+edits at the main session's direction. No custom orchestrator agent exists, and
+project subagents must not spawn descendants.
 
 ## Required task envelope
 
@@ -45,6 +46,7 @@ defensive task genuinely requires a narrower action.
 | `hard_implementer` | GPT-5.6 Sol, xhigh | Sole writer | Public contracts, ownership, cleanup, untrusted inputs, concurrency, FFI/adapters, pins, policy/state semantics, performance, and cross-module work. |
 | `reviewer` | GPT-5.6 Sol, high | Read-only | Independent owner review against requirements, invariants, tests, and the assigned specialist perspective. |
 | `gate_verifier` | GPT-5.6 Terra, high | Validation-only | Re-run canonical checks, audit evidence, and classify the exact failing layer without tracked edits. |
+| `process_reviewer` | GPT-5.6 Sol, high | Read-only | On-demand analysis of evidence-backed process friction from a bounded main-session packet. |
 
 Within Lane 3, use `hard_implementer` if writer classification is uncertain.
 Do not silently substitute a different model when a pinned model is
@@ -59,8 +61,8 @@ size, or file count.
 | Lane | Boundary | Required routing |
 | --- | --- | --- |
 | 1 - mechanical docs | Spelling, formatting, or equivalent link correction with no normative, product, API, authority, gate, evidence, milestone, build, or security meaning change. | Main-session reconnaissance; one `fast_implementer`; focused documentation/link/diff checks. No explorer, reviewer, verifier, or register. |
-| 2 - governance/semantic docs | Agent rules, execution plans, CI instructions, evidence claims, milestone records, security guidance, or other semantic docs without product/runtime behavior. These protected surfaces are Lane 2 minimum. | Main-session reconciliation or one `explorer`; one `fast_implementer`; one independent governance/authority `reviewer`; focused validation. Mandatory verifier for the triggers defined below. |
-| 3 - product/milestone | Runtime/API/test/build/schema/tooling behavior, executable CI wiring, milestone implementation or evidence generation, requirements-mapping behavior, correctness/performance gates, or mixed work containing any of these. | Full Lane 3 workflow. |
+| 2 - governance/semantic docs | Agent rules, execution plans, CI instructions, evidence claims, milestone records, security guidance, or other semantic docs without product/runtime behavior. Repo-local agent orchestration rules, role instructions, and role wiring stay here when they do not change project build/test/schema/CI/delivery tooling, requirements mappings, milestone gates or commands, acceptance facts, or remote authority. These protected surfaces are Lane 2 minimum. | Main-session reconciliation or one `explorer`; one `fast_implementer`; one independent governance/authority `reviewer`; focused validation. Mandatory verifier for the triggers defined below. |
+| 3 - product/milestone | Runtime/API/test/build/schema behavior, project build/test/schema/CI/delivery tooling, executable CI wiring, milestone implementation or evidence generation, requirements-mapping behavior, correctness/performance gates, or mixed work containing any of these. | Full Lane 3 workflow. |
 
 Doubt escalates upward; silent downgrade is prohibited. Mixed work takes the
 highest lane unless the main session creates genuinely independent envelopes.
@@ -105,7 +107,55 @@ Clean reviews and non-material hygiene observations do not create registered
 findings. Lane 2 findings are governed by the process register below.
 Lane 2 may document process routing and checks, but it cannot change product
 or milestone correctness or performance gates, acceptance criteria, required
-milestone command sets, or executable wiring. Any such change is Lane 3.
+milestone command sets, or executable project wiring. Any such change is
+Lane 3.
+
+## End-of-run process retrospective
+
+Run this event for every completed, interrupted, or blocked implementation run,
+after its outcome and verification are known and immediately before the final
+handoff. Do not run it for planning or read-only question sessions. Primary
+work and every existing rule continue unchanged: retrospective observation
+does not authorize mid-run shortcuts or redirect the task. Correctness, safety,
+authority, or gate defects use the ordinary immediate finding or escalation
+path instead of being deferred.
+
+The main session owns observation, optional analyst activation, synthesis, and
+final reporting. `hard_implementer`, `reviewer`, and `gate_verifier` may each
+include at most one concise evidence-backed process-friction observation only
+when they directly encounter it. They do not brainstorm and do not add a
+mandatory empty field. `explorer` and `fast_implementer` remain task-only and
+receive no reflection responsibility.
+
+Only the main session may activate `process_reviewer`, never automatically. Its
+explicit bounded evidence packet must name:
+
+- the subject role and applicable task contract;
+- relevant observable messages, handoff, commands, failures, diff or commits,
+  and artifacts;
+- the suspected inefficiency and exact analysis question;
+- explicit exclusions from product review, tracked edits, finding closure,
+  gate acceptance, milestone decisions, orchestration, delegation, and any
+  inference about hidden reasoning or unseen sibling context.
+
+Ordinarily inspect a role after it yields. If failure is suspected while a role
+is still running, the main session first requests a factual status packet or
+interrupts at a safe boundary. `process_reviewer` evaluates process design, not
+agent personality, and returns either `no supported inefficiency` or the
+observed evidence, likely process cause, bounded correction, expected benefit
+and tradeoff, and suggested lane. It cannot access or infer hidden reasoning or
+unseen sibling context and has no product-review, tracked-edit,
+finding-closure, gate-acceptance, milestone, orchestration, or delegation
+authority.
+
+When no correction is justified, the final handoff includes exactly:
+`Process retrospective: no actionable process correction identified.`
+Otherwise report only actionable proposals, each with observed evidence,
+inefficiency, proposed correction, expected benefit/risk, and proposed lane.
+Pure efficiency suggestions are non-blocking and final-report-only. They do not
+update `planning/IMPLEMENTATION_PROGRESS.md`, `evidence/process/REVIEW.md`, or a
+backlog. Repository changes require separate user authorization and fresh
+classification.
 
 ## Lane 3 adversarial contract review
 

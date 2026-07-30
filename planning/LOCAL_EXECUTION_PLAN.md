@@ -117,10 +117,14 @@ milestone, executable gate, requirements-mapping, or mixed higher-risk work.
 Protected governance, evidence, gate, milestone, and security surfaces are
 Lane 2 minimum. Doubt and scope expansion escalate upward; silent downgrade,
 review-evasion splitting, and writer self-reclassification are prohibited.
-Lane 2 may document process routing and checks, with verification mandatory
-when process authority, documentary workflow gates, acceptance evidence, or
-milestone acceptance facts change. Product/milestone gates, acceptance
-criteria, required command sets, and executable wiring remain Lane 3.
+Repo-local agent orchestration rules, role instructions, and role wiring are
+Lane 2 when they do not change product/runtime behavior or project
+build/test/schema/CI/delivery tooling, requirements mappings, milestone gates
+or commands, acceptance facts, or remote authority. Lane 2 may document
+process routing and checks, with verification mandatory when process
+authority, documentary workflow gates, acceptance evidence, or milestone
+acceptance facts change. Product/milestone gates, acceptance criteria,
+required command sets, and executable project wiring remain Lane 3.
 
 Lane 3 retains adversarial contract review, staged focused verification,
 stable milestone findings, independent review, and a final exact-tree gate.
@@ -171,6 +175,35 @@ This branch policy applies to Lane 3 milestone implementation, not ordinary
 Lane 1 or Lane 2 maintenance. Only one milestone branch may be active at a
 time. Deferred milestones and later-risk spikes receive a separate branch only
 after the main session explicitly activates that envelope.
+
+### L-009: End-of-implementation-run process retrospective
+
+Every completed, interrupted, or blocked implementation run ends with a
+main-session process retrospective after the implementation outcome and
+verification are known and immediately before the final handoff. Planning and
+read-only question sessions do not run this event. Primary work and all
+existing correctness, safety, authority, review, and gate rules remain
+unchanged; observing process friction never authorizes a shortcut or redirects
+the active task. A correctness, safety, authority, or gate defect discovered
+during work follows the ordinary immediate finding or escalation path instead
+of waiting for the retrospective.
+
+The main session owns observation, optional activation of the read-only
+`process_reviewer`, synthesis, and final reporting. `hard_implementer`,
+`reviewer`, and `gate_verifier` may each report at most one concise,
+evidence-backed process-friction observation when directly encountered;
+`explorer` and `fast_implementer` remain task-only. The main session activates
+`process_reviewer` only on demand with the bounded evidence packet and authority
+limits defined in `.codex/AGENT_WORKFLOW.md`.
+
+If no correction is supported, the final handoff states exactly:
+`Process retrospective: no actionable process correction identified.`
+Otherwise each non-blocking proposal reports observed evidence, the
+inefficiency, a bounded correction, its expected benefit and risk, and the
+proposed lane. Pure efficiency proposals remain final-report-only: they do not
+update the milestone ledger, `evidence/process/REVIEW.md`, or a backlog.
+Changing the repository from a proposal requires separate user authorization
+and fresh classification.
 
 ## M0-V through M3 implementation contract
 
