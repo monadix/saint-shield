@@ -109,31 +109,25 @@ from verified implementation and test evidence.
 
 ### L-007: Semantic-risk workflow lanes
 
-Classify each change by semantic effect, never file extension, diff size, or
-file count:
-Lane 1 for purely mechanical documentation, Lane 2 for governance or semantic
-documentation without product/runtime effect, and Lane 3 for product,
-milestone, executable gate, requirements-mapping, or mixed higher-risk work.
-Protected governance, evidence, gate, milestone, and security surfaces are
-Lane 2 minimum. Doubt and scope expansion escalate upward; silent downgrade,
+Classify by semantic effect: Lane 1 is purely mechanical documentation, Lane 2
+is governance or semantic documentation without product/runtime effect, and
+Lane 3 is product, milestone, executable tooling/gates, requirements mapping,
+or mixed higher-risk work. Protected governance, evidence, milestone, gate,
+and security surfaces are Lane 2 minimum. Doubt escalates; silent downgrade,
 review-evasion splitting, and writer self-reclassification are prohibited.
-Repo-local agent orchestration rules, role instructions, and role wiring are
-Lane 2 when they do not change product/runtime behavior or project
-build/test/schema/CI/delivery tooling, requirements mappings, milestone gates
-or commands, acceptance facts, or remote authority. Lane 2 may document
-process routing and checks, with verification mandatory when process
-authority, documentary workflow gates, acceptance evidence, or milestone
-acceptance facts change. Product/milestone gates, acceptance criteria,
-required command sets, and executable project wiring remain Lane 3.
 
-Lane 3 retains adversarial contract review, staged focused verification,
-stable milestone findings, independent review, and a final exact-tree gate.
-Material Lane 2 findings use `evidence/process/REVIEW.md`; Lane 1 and clean or
-non-material Lane 2 reviews create no findings. Exactly one physical writer,
-no descendant delegation, and security-adjacent task envelopes apply in every
-lane. Discovering reviewers/verifiers exclusively decide finding closure; the
-main session exclusively controls classification/reclassification,
-orchestration, acceptance, completion, and progression.
+Lane 1 is edited directly by the main session. Lane 2 uses one writer and one
+independent reviewer, plus verification for authority, documentary gate,
+acceptance-evidence, or milestone-fact triggers. Lane 3 standard uses one
+standard writer, independent review, and exact-tree verification; critical
+work adds triggered exploration and uses the hard writer. The canonical
+boundaries, delegation test, role triggers, finding authority, and checks are
+in `.codex/AGENT_WORKFLOW.md`.
+
+Exactly one physical writer, main-only orchestration, no descendant
+delegation, and security-adjacent envelopes apply throughout. Discoverers
+alone close their findings; the main session alone classifies, orchestrates,
+accepts, completes, and progresses work.
 
 This is execution discipline only. It does not change normative requirements,
 the accepted architecture, milestone scope, or any archived or local
@@ -143,33 +137,16 @@ acceptance gate.
 
 Each unfinished Lane 3 milestone is implemented on one local branch named
 `milestone/<lowercase-id>`, such as `milestone/m2`, from the accepted
-predecessor state on local `main`. Incremental commits are branch-local
-recovery and review artifacts: commit each coherent vertical slice with its
-tests and evidence, permit only one tip-only `wip(<id>): ...` commit under the
-bounded rules in `.codex/AGENT_WORKFLOW.md`, and review and verify the aggregate
-baseline-to-tip tree rather than the last commit alone.
+predecessor state on local `main`. The sole writer owns physical Git operations
+and coherent slice commits; one tip-only WIP is allowed. Review and gate the
+complete baseline-to-tip tree. Dirtiness, a base mismatch, or advanced `main`
+stops for user direction; never auto-stash, reset, clean, or absorb work.
+Remote mutation requires separate authorization.
 
-The main session retains orchestration, gate-acceptance, milestone-completion,
-and progression authority. The selected sole writer holds exclusive physical
-Git authority for branch changes, explicit-path staging, commits, the
-root-directed squash integration, and local branch deletion. Before any
-create, resume, switch, or integration operation, a dirty tracked or untracked
-worktree requires a stop and user decision; agents never auto-stash, reset, or
-absorb unrelated work. Remote mutation, including push and force-push, requires
-separate user authorization. For each milestone envelope, the explorer
-proposes and the main session records the exact post-integration commands; the
-writer must require and run those commands rather than infer a universal
-milestone command set.
-
-After the main session accepts the exact-tree gate, the writer records the
-allowed acceptance evidence, confirms local `main` remains at the recorded
-baseline, and squash-integrates the branch as one milestone commit. The writer
-must prove the resulting `main` tree equals the final branch tree and pass the
-recorded exact post-integration commands before deleting the exact local
-branch. Because a squash does not preserve branch ancestry, forced local
-deletion is allowed only after those checks and explicit main-session
-direction. Any advanced `main`, tree mismatch, or failed check leaves the
-branch intact for a user decision.
+After exact-tree acceptance, main may direct a squash integration. Prove
+branch/main tree identity and run the envelope-specific post-integration
+commands before main may direct deletion of the exact local branch. The
+complete lifecycle is canonical in `.codex/AGENT_WORKFLOW.md`.
 
 This branch policy applies to Lane 3 milestone implementation, not ordinary
 Lane 1 or Lane 2 maintenance. Only one milestone branch may be active at a
@@ -180,30 +157,30 @@ after the main session explicitly activates that envelope.
 
 Every completed, interrupted, or blocked implementation run ends with a
 main-session process retrospective after the implementation outcome and
-verification are known and immediately before the final handoff. Planning and
-read-only question sessions do not run this event. Primary work and all
-existing correctness, safety, authority, review, and gate rules remain
-unchanged; observing process friction never authorizes a shortcut or redirects
-the active task. A correctness, safety, authority, or gate defect discovered
-during work follows the ordinary immediate finding or escalation path instead
-of waiting for the retrospective.
+verification are known. Planning and read-only answers do not. This never
+authorizes a shortcut or defers a correctness, safety, authority, or gate
+defect.
 
-The main session owns observation, optional activation of the read-only
-`process_reviewer`, synthesis, and final reporting. `hard_implementer`,
-`reviewer`, and `gate_verifier` may each report at most one concise,
-evidence-backed process-friction observation when directly encountered;
-`explorer` and `fast_implementer` remain task-only. The main session activates
-`process_reviewer` only on demand with the bounded evidence packet and authority
-limits defined in `.codex/AGENT_WORKFLOW.md`.
+Main owns observation, triggered `process_reviewer` activation, synthesis, and
+reporting. Activation is limited to repeated friction, authority ambiguity
+that caused a finding, orchestration-caused gate rerun, genuine need for a
+full-history fork, role-routing failure, or milestone closure. The canonical
+evidence packet, role limits, and output are in `.codex/AGENT_WORKFLOW.md`.
 
 If no correction is supported, the final handoff states exactly:
 `Process retrospective: no actionable process correction identified.`
-Otherwise each non-blocking proposal reports observed evidence, the
-inefficiency, a bounded correction, its expected benefit and risk, and the
-proposed lane. Pure efficiency proposals remain final-report-only: they do not
-update the milestone ledger, `evidence/process/REVIEW.md`, or a backlog.
-Changing the repository from a proposal requires separate user authorization
-and fresh classification.
+Otherwise report evidence, inefficiency, bounded correction, benefit/risk, and
+proposed lane. Efficiency proposals remain final-report-only until separately
+authorized and reclassified.
+
+### L-010: Isolated specification maintenance
+
+The specification is frozen during milestone implementation. Normative edits
+require a separately activated Lane 3 specification-maintenance session on
+`spec/<slug>` and never overlap an active milestone branch. Dedicated
+`spec_editor` and `spec_reviewer` delegation requires proven runtime routing.
+The canonical workflow is in `.codex/AGENT_WORKFLOW.md`; it does not permit
+silent gate waivers, milestone-fact changes, or product implementation.
 
 ## M0-V through M3 implementation contract
 

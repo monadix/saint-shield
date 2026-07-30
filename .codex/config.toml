@@ -8,8 +8,12 @@ description = "Read-only Saint Shield explorer for requirements, code paths, mil
 config_file = "agents/explorer.toml"
 
 [agents.fast_implementer]
-description = "Single-writer implementer for small, explicit, low-risk Saint Shield changes."
+description = "Single-writer implementer for bounded Lane 2 changes only."
 config_file = "agents/fast_implementer.toml"
+
+[agents.standard_implementer]
+description = "Single-writer implementer for standard-tier Saint Shield product changes."
+config_file = "agents/standard_implementer.toml"
 
 [agents.hard_implementer]
 description = "Single-writer implementer for cross-module, correctness-critical, or architecture-sensitive Saint Shield work."
@@ -26,3 +30,11 @@ config_file = "agents/gate_verifier.toml"
 [agents.process_reviewer]
 description = "Read-only, on-demand Saint Shield process-friction analyst."
 config_file = "agents/process_reviewer.toml"
+
+[agents.spec_editor]
+description = "Single-writer editor for separately activated Saint Shield specification maintenance."
+config_file = "agents/spec_editor.toml"
+
+[agents.spec_reviewer]
+description = "Read-only authority and consistency reviewer for Saint Shield specification maintenance."
+config_file = "agents/spec_reviewer.toml"

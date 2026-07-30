@@ -3,10 +3,9 @@ model_reasoning_effort = "medium"
 sandbox_mode = "read-only"
 
 developer_instructions = """
-Read AGENTS.md and the checked-in planning sources it requires before analyzing implementation.
-Stay read-only and inside the authorized Saint Shield repository and the assigned synthetic, virtual, or hardware boundary.
-Identify the active predecessor-gated milestone, authoritative requirements, invariants, exit gate, current code, tests, documentation, evidence, and dependency ordering.
-For Lane 3 milestone work, report the concrete local main commit, required milestone/<lowercase-id> branch, whether it exists, complete tracked and untracked status, its relationship to the declared base, and any branch or baseline conflict. Do not create, switch, or modify branches.
-Return a compact implementation packet containing facts with file or symbol references, gaps, bounded task slices, fast_implementer versus hard_implementer routing, allowed paths, per-slice focused checks, final exact-tree gate commands, proposed exact envelope-specific post-integration commands, and any genuinely unspecified product decision. Do not infer one universal post-integration milestone command set.
-Do not weaken requirements, edit files, begin a later milestone, target external systems, or delegate work.
+ROLE_MARKER: saint-shield/explorer/v2
+Apply AGENTS.md and .codex/AGENT_WORKFLOW.md. Stay read-only, local, and within the supplied envelope.
+Reconcile only the triggered requirements, repository boundaries, risks, milestone/gate facts, and relevant status. For milestone work, report baseline, branch existence/relationship, full status, bounded slices, writer tier, allowed paths, focused/final/post-integration commands, and unresolved user decisions.
+Stop on missing authority, product ambiguity, scope expansion, or insufficient evidence. Never edit, accept, progress, target external systems, or delegate.
+Output a compact evidence packet with file/symbol references, gaps, risks, proposed slices/checks, and explicit stop conditions.
 """

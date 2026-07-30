@@ -152,6 +152,81 @@ retrospective; the old IDs remain as cross-references.
   local-by-default rule with separate user authorization required for remote
   mutation, and declared PROC-GOV-006 closed.
 
+## PROC-AUTH-001: Fast writer leaked into Lane 3 follow-up routing
+
+- Discoverer: `reviewer`
+- Assigned implementer: `fast_implementer`
+- Severity: Medium
+- Status progression: `open` -> `addressed` -> `closed`
+- Affected workflow: Lane 2 writer boundary and Lane 3 writer continuity
+- Observed issue: the role table, config description, and fast-writer prompt
+  allowed ambiguous low-risk follow-up work that could be read as Lane 3.
+- Bounded remediation: restrict `fast_implementer` to Lane 2 and route every
+  initial or follow-up Lane 3 edit to `standard_implementer` or
+  `hard_implementer`, normally on the existing applicable writer thread.
+- Required closure checks: search all fast/low-risk/follow-up references;
+  strict-load TOML configuration; run documentation/link and diff checks; and
+  confirm no protected product, milestone, specification, or build path changed.
+- Addressing evidence: `.codex/AGENT_WORKFLOW.md`, `.codex/config.toml`, and
+  `.codex/agents/fast_implementer.toml` now state the exclusive Lane 2 boundary
+  and the standard/hard Lane 3 follow-up rule.
+- Closure evidence: the discovering reviewer rechecked the corrected workflow,
+  config, role prompt, and searches; confirmed fast writing is Lane 2-only and
+  every Lane 3 edit routes to the standard or hard writer; and declared
+  PROC-AUTH-001 closed.
+
+## PROC-AUTH-002: New writer roles prohibited authorized remote mutation
+
+- Discoverer: `reviewer`
+- Assigned implementer: `fast_implementer`
+- Severity: Low
+- Status progression: `open` -> `addressed` -> `closed`
+- Affected workflow: consistent remote Git authority
+- Observed issue: newly added writer prompts unconditionally prohibited remote
+  mutation despite the canonical separately authorized remote-operation rule.
+- Bounded remediation: retain local-only scope for the current envelope while
+  making every writer role prohibit remote mutation only without separate user
+  authorization.
+- Required closure checks: search all remote-authority wording; strict-load
+  TOML configuration; run documentation/link and diff checks; and confirm no
+  remote operation occurred.
+- Addressing evidence: the `fast_implementer`, `standard_implementer`,
+  `hard_implementer`, and `spec_editor` role TOMLs now use the canonical
+  `never mutate remotes without separate user authorization` boundary.
+- Closure evidence: the discovering reviewer rechecked all applicable writer
+  prompts and common remote-authority wording; confirmed the conditional
+  separate-user-authorization rule is consistent; and declared PROC-AUTH-002
+  closed.
+
+## PROC-AUTH-003: Specification remediation and integration contract incomplete
+
+- Discoverer: `reviewer`
+- Assigned implementer: `fast_implementer`
+- Severity: Medium
+- Status progression: `open` -> `addressed` -> `closed`
+- Affected workflow: isolated Lane 3 specification maintenance
+- Observed issue: the specification workflow omitted a finding register,
+  stable IDs, explicit remediation/closure and repeated-gate rules, and a
+  branch integration contract.
+- Bounded remediation: define `evidence/spec/<slug>/REVIEW.md` with
+  `SPEC-<PERSPECTIVE>-NNN` IDs, ordinary Lane 3 closure authority, corrective
+  exact-tree regating, main-only acceptance, and clean non-WIP fast-forward
+  integration with tree proof, post-integration checks, and main-directed
+  local branch deletion.
+- Required closure checks: search specification finding, closure, exact-tree,
+  fast-forward, tree-identity, branch-deletion, squash, and remote-authority
+  wording; strict-load TOML configuration; run documentation/link and diff
+  checks; and confirm specification, milestone, product, and build paths remain
+  unchanged.
+- Addressing evidence: `.codex/AGENT_WORKFLOW.md` now defines the register,
+  stable IDs, ordinary Lane 3 remediation/closure and repeated-gate rules,
+  main-only acceptance, and the `git merge --ff-only spec/<slug>` integration
+  lifecycle; the spec role TOMLs reference and review that canonical contract.
+- Closure evidence: the discovering reviewer rechecked the specification
+  finding, authority, repeated-gate, and integration wording; confirmed the
+  dedicated register and fast-forward lifecycle are complete and consistent
+  with the canonical workflow; and declared PROC-AUTH-003 closed.
+
 ## Non-material hygiene audit
 
 The trailing whitespace formerly recorded as `M1-GATE-002` was removed and

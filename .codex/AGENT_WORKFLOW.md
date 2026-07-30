@@ -1,439 +1,353 @@
 # Saint Shield Multi-Agent Workflow
 
-The user-controlled main session is the sole orchestrator. It owns task
-decomposition, agent activation, handoffs, user decisions, gate acceptance,
-decisions about final progress-ledger content, and end-of-run retrospective
-observation, synthesis, and reporting. These are decision authorities, not
-authority for routine tracked-file edits: the selected sole writer makes those
-edits at the main session's direction. No custom orchestrator agent exists, and
-project subagents must not spawn descendants.
+This is the canonical delegation, review, verification, finding, Git, and
+specification-maintenance runbook. `AGENTS.md` contains universal rules;
+`planning/LOCAL_EXECUTION_PLAN.md` contains accepted local product and resource
+decisions.
 
-## Required task envelope
+The user-controlled main session is the only orchestrator. It owns
+classification, task decomposition, delegation, user decisions, process and
+milestone acceptance, completion, progression, and retrospective synthesis.
+Exactly one selected writer makes tracked-file and physical Git changes at its
+direction. Delegated agents never delegate.
 
-Every delegated task names:
+## Delegation test and task envelope
 
-- the authorized target: this Saint Shield repository;
-- the defensive or engineering outcome;
-- the root-selected change-classification lane;
-- the active milestone and applicable requirement, invariant, or gate;
-- the permitted synthetic, virtual, or hardware boundary;
-- the exact in-scope question or change and explicit exclusions;
-- whether the role is read-only, validation-only, or the sole writer;
-- the expected evidence and output format;
-- the lane-required focused checks and, for Lane 3, the final exact-tree gate
-  commands.
+Before every spawn, the main session records:
 
-Every Lane 3 milestone task also records the concrete local `main` baseline
-commit, the required `milestone/<lowercase-id>` branch name, whether that branch
-already exists, complete tracked and untracked clean status, allowed paths,
-focused checks required before each planned slice commit, and the final
-exact-tree gate commands. It also names the exact envelope-specific
-post-integration commands proposed by the explorer and selected by the main
-session; there is no universal inferred milestone command set. These facts are
-part of the task boundary, not defaults for the writer to infer.
+- the qualifying reason: measurable parallelism, substantial context
+  isolation, independent assurance, or a mandatory gate;
+- selected role and Lane 3 tier, if applicable;
+- `fork_turns` mode and justification for any inherited turns;
+- the agent's authority and file/system boundary;
+- expected evidence and output;
+- why completing the task in the main session is not cheaper.
 
-Security-adjacent tasks must also state that external targeting, broad
+Do not spawn for tiny sequential checks, duplicate exploration, routine status
+collection, or an unresolved product decision. Resolve product ambiguity with
+the user first. Agent/thread ceilings are capacity limits, not quotas.
+
+Prefer a follow-up on the same role thread while its bounded contract and
+relevant repository state remain valid. A new task defaults to
+`fork_turns="none"` and receives a self-contained envelope. Inherit only one to
+three recent turns when those exact turns materially reduce a safe,
+self-contained handoff; record why. `fork_turns="all"` is normally prohibited
+and is itself a process-review trigger if genuinely needed.
+
+Every delegated envelope states:
+
+- the authorized Saint Shield repository and defensive/engineering outcome;
+- recorded lane and, for Lane 3, standard or critical tier;
+- active milestone and applicable requirement, invariant, or gate;
+- allowed synthetic, virtual, hardware, and external-system boundary;
+- exact scope, allowed paths, exclusions, and stop conditions;
+- read-only, validation-only, or sole-writer authority;
+- focused checks, expected evidence, and output format;
+- for Lane 3, final exact-tree gate commands.
+
+Security-adjacent envelopes explicitly exclude external targeting, broad
 scanning, credential access, exploitation, exfiltration, malware deployment,
-and destructive actions are out of scope unless a separately authorized
-defensive task genuinely requires a narrower action.
+and destructive actions unless separately and narrowly authorized.
 
-## Roles and routing
+A Lane 3 milestone envelope additionally records the concrete local `main`
+baseline, exact `milestone/<lowercase-id>` branch, whether it exists, complete
+tracked and untracked status, allowed paths, slice checks, final gate, and
+exact envelope-specific post-integration commands. The writer never infers
+these facts or a universal milestone command set.
 
-| Role | Model | Authority | Use |
+## Roles, tiers, and runtime trust
+
+| Role | Intended assignment | Authority | Use |
 | --- | --- | --- | --- |
-| `explorer` | GPT-5.6 Terra, medium | Read-only | Establish requirements, current code paths, risks, task slices, and verification before edits. |
-| `fast_implementer` | GPT-5.6 Luna, medium | Sole writer | Lane 1/2 documentation and separately bounded low-risk Lane 3 documentation, fixture, test, evidence-formatting, or mechanical internal changes. |
-| `hard_implementer` | GPT-5.6 Sol, xhigh | Sole writer | Public contracts, ownership, cleanup, untrusted inputs, concurrency, FFI/adapters, pins, policy/state semantics, performance, and cross-module work. |
-| `reviewer` | GPT-5.6 Sol, high | Read-only | Independent owner review against requirements, invariants, tests, and the assigned specialist perspective. |
-| `gate_verifier` | GPT-5.6 Terra, high | Validation-only | Re-run canonical checks, audit evidence, and classify the exact failing layer without tracked edits. |
-| `process_reviewer` | GPT-5.6 Sol, high | Read-only | On-demand analysis of evidence-backed process friction from a bounded main-session packet. |
+| `explorer` | Terra, medium | Read-only | Triggered reconciliation of requirements, code, risks, slices, and gates. |
+| `fast_implementer` | Luna, medium | Sole writer | Lane 2 changes only. |
+| `standard_implementer` | Terra, medium | Sole writer | Standard Lane 3 implementation with explicit contracts. |
+| `hard_implementer` | Sol, xhigh | Sole writer | Critical correctness, architecture, security, ownership, or performance work. |
+| `reviewer` | Sol, high | Read-only | Independent product owner review from named perspectives. |
+| `gate_verifier` | Terra, high | Validation-only | Focused and final exact-tree gates and evidence audit. |
+| `process_reviewer` | Terra, medium | Read-only | Triggered analysis of bounded evidence of process friction. |
+| `spec_editor` | Sol, high | Sole writer | Separately activated normative specification maintenance. |
+| `spec_reviewer` | Sol, high | Read-only | Independent authority and consistency review of specification maintenance. |
 
-Within Lane 3, use `hard_implementer` if writer classification is uncertain.
-Do not silently substitute a different model when a pinned model is
-unavailable.
+These are intended assignments in the legacy repo-local schema accepted by
+Codex 0.144.4. The role TOMLs each contain a unique marker, but neither a task
+label nor agent self-report proves that the runtime applied its role, model, or
+sandbox. Treat all assignments as unusable for model-specific routing until
+the smoke below passes on the current surface. Do not migrate this repository
+to the newer standalone-agent schema on Codex 0.144.4.
+
+### Role-routing smoke
+
+Before claiming model- or sandbox-specific routing:
+
+1. Strict-load the repo configuration with
+   `codex --strict-config doctor --summary --no-color`.
+2. Activate one harmless read-only task per role through the role-capable
+   runtime surface, using a self-contained `fork_turns="none"` envelope.
+3. Inspect parent/runtime activation events or trusted runtime diagnostics—not
+   the child's prose—for the exact role marker and effective model and sandbox.
+4. Compare all three values to the role TOML. Record the Codex version,
+   command/surface, timestamp, and captured metadata.
+5. Mark only matching roles proven. A missing marker or missing/mismatched
+   runtime model/sandbox is `unproven`; do not infer success.
+
+The current task-label smoke did not apply the project role configuration or
+expose runtime model/sandbox metadata. This surface is unproven, so delegation
+must not claim a custom model or sandbox until a later smoke supplies trusted
+metadata. After proof, do not silently substitute an unavailable model or
+sandbox; stop or rerun the proof for an explicitly approved assignment.
 
 ## Change classification and routing
 
-The main session records the lane before delegation and alone may reclassify
-it. Classify by the highest semantic effect, never by file extension, diff
-size, or file count.
+The main session records the highest semantic lane before editing or
+delegation and alone may reclassify it. File type, diff size, and file count do
+not lower classification. Mixed changes take the highest lane unless split
+into genuinely independent envelopes; splitting to evade review is forbidden.
 
-| Lane | Boundary | Required routing |
+| Lane | Boundary | Routing |
 | --- | --- | --- |
-| 1 - mechanical docs | Spelling, formatting, or equivalent link correction with no normative, product, API, authority, gate, evidence, milestone, build, or security meaning change. | Main-session reconnaissance; one `fast_implementer`; focused documentation/link/diff checks. No explorer, reviewer, verifier, or register. |
-| 2 - governance/semantic docs | Agent rules, execution plans, CI instructions, evidence claims, milestone records, security guidance, or other semantic docs without product/runtime behavior. Repo-local agent orchestration rules, role instructions, and role wiring stay here when they do not change project build/test/schema/CI/delivery tooling, requirements mappings, milestone gates or commands, acceptance facts, or remote authority. These protected surfaces are Lane 2 minimum. | Main-session reconciliation or one `explorer`; one `fast_implementer`; one independent governance/authority `reviewer`; focused validation. Mandatory verifier for the triggers defined below. |
-| 3 - product/milestone | Runtime/API/test/build/schema behavior, project build/test/schema/CI/delivery tooling, executable CI wiring, milestone implementation or evidence generation, requirements-mapping behavior, correctness/performance gates, or mixed work containing any of these. | Full Lane 3 workflow. |
+| 1 — mechanical documentation | Spelling, formatting, or equivalent link repair only; no normative, product, API, authority, gate, evidence, milestone, build, or security meaning. | Main session edits directly; focused documentation/link/diff checks. No spawn or register. |
+| 2 — governance/semantic documentation | Agent rules, execution plans, evidence claims, milestone records, security guidance, or role wiring/instructions without product/runtime or executable project-tooling effect. | One sole writer, one independent governance/authority reviewer, and focused validation. Add verifier only on protected triggers below. |
+| 3 — product/milestone | Runtime, API, tests, build, schema, executable CI/delivery tooling, milestone implementation/evidence, requirements mappings, correctness/performance gates, or mixed higher-risk work. | Standard or critical workflow below. |
 
-Doubt escalates upward; silent downgrade is prohibited. Mixed work takes the
-highest lane unless the main session creates genuinely independent envelopes.
-Do not split work to evade review. A writer that discovers behavior outside its
-recorded lane stops, preserves the current diff, and reports the overflow for
-root reclassification.
+Lane 2 protected surfaces are Lane 2 minimum. Its verifier is mandatory when
+the diff changes governance/process-only authority boundaries, documentary
+workflow gate definitions or commands, acceptance-evidence statements, or
+milestone acceptance facts; normally omit it otherwise. Lane 2 cannot change
+product or milestone acceptance criteria, required command sets,
+correctness/performance gates, or executable project wiring. That is Lane 3.
 
-Exactly one physical writer and no descendant delegation apply in every lane.
-The discovering reviewer or verifier exclusively decides and declares finding
-closure. The main session exclusively controls classification/reclassification,
-orchestration, process or milestone acceptance, completion, and progression.
-Every security-adjacent delegation still requires the complete defensive task
-envelope and explicit exclusions.
+Lane 3 standard uses `standard_implementer`, independent `reviewer`, and
+`gate_verifier`. Critical adds `explorer`, uses `hard_implementer`, and selects
+all applicable specialist review perspectives. Critical includes public
+contracts, unsafe or ownership/lifetime boundaries, allocation cleanup,
+untrusted parsing/mutation, concurrency/QSBR, FFI/adapters, dependency pins,
+policy/state semantics, correctness/performance architecture, and
+cross-module/cross-authority work. If tier selection is uncertain, use
+critical.
 
-### Lane 1 workflow
+Every initial or follow-up Lane 3 edit uses `standard_implementer` or
+`hard_implementer` according to the recorded tier, normally by following up on
+the existing applicable writer thread while its contract remains valid.
+`fast_implementer` never writes Lane 3 changes.
 
-1. The main session performs targeted read-only reconnaissance and records
-   Lane 1 before delegation.
-2. One `fast_implementer` makes only the bounded mechanical edit.
-3. Run affected documentation, local-link, and diff checks. On any doubt or
-   expanded meaning, stop and escalate to Lane 2 or Lane 3.
+`explorer` is triggered, not a standing prerequisite or quota. It is mandatory
+for critical Lane 3, milestone-exit reconciliation, unresolved scope or
+requirement ambiguity, cross-module/cross-authority boundary discovery, or
+materially stale/changed relevant repository state. One activation remains
+valid for focused remediation in an unchanged envelope. Do not respawn for a
+review finding alone or duplicate an existing reconciliation.
 
-Lane 1 has no explorer, reviewer, verifier, or findings register.
+A writer encountering work outside its lane, tier, or boundary stops and
+reports it. Never run two writers concurrently. A writer handoff requires the
+current writer to stop and report changed paths, checks, pending work, and
+repository state.
 
-### Lane 2 workflow
+## Lane workflows
 
-1. The main session records Lane 2 and either reconciles the affected
-   governance surfaces itself or activates one read-only `explorer`.
-2. One `fast_implementer` makes the bounded semantic-documentation change and
-   runs focused validation.
-3. One independent `reviewer` checks governance, authority, semantic
-   consistency, and classification bypass risk.
-4. A `gate_verifier` is mandatory if the diff changes governance/process-only
-   authority boundaries, documentary workflow gate definitions or commands,
-   acceptance-evidence statements, or milestone acceptance facts; normally
-   omit it otherwise.
-5. Return material actionable findings to the same writer. After the
-   discovering role reports closure, the main session accepts the process
-   change and directs the selected writer to record any closure status.
+### Lane 1
 
-Clean reviews and non-material hygiene observations do not create registered
-findings. Lane 2 findings are governed by the process register below.
-Lane 2 may document process routing and checks, but it cannot change product
-or milestone correctness or performance gates, acceptance criteria, required
-milestone command sets, or executable project wiring. Any such change is
-Lane 3.
+The main session performs focused reconnaissance, edits the bounded mechanical
+change, and runs affected documentation, link, and diff checks. Any semantic
+doubt stops and escalates.
 
-## End-of-run process retrospective
+### Lane 2
 
-Run this event for every completed, interrupted, or blocked implementation run,
-after its outcome and verification are known and immediately before the final
-handoff. Do not run it for planning or read-only question sessions. Primary
-work and every existing rule continue unchanged: retrospective observation
-does not authorize mid-run shortcuts or redirect the task. Correctness, safety,
-authority, or gate defects use the ordinary immediate finding or escalation
-path instead of being deferred.
+1. Main records Lane 2, passes the delegation test, and supplies one bounded
+   writer envelope. Exploration is used only if a trigger above applies.
+2. The sole writer edits and runs focused validation.
+3. One independent reviewer checks governance meaning, authority,
+   consistency, classification bypass, and preserved product/milestone facts.
+4. Add `gate_verifier` only for the protected triggers.
+5. Return material actionable findings to the same writer thread. The
+   discovering reviewer/verifier alone closes its finding; main accepts the
+   process change.
 
-The main session owns observation, optional analyst activation, synthesis, and
-final reporting. `hard_implementer`, `reviewer`, and `gate_verifier` may each
-include at most one concise evidence-backed process-friction observation only
-when they directly encounter it. They do not brainstorm and do not add a
-mandatory empty field. `explorer` and `fast_implementer` remain task-only and
-receive no reflection responsibility.
+Clean reviews and non-material hygiene observations create no register entry.
 
-Only the main session may activate `process_reviewer`, never automatically. Its
-explicit bounded evidence packet must name:
+### Lane 3 adversarial contract review
 
-- the subject role and applicable task contract;
-- relevant observable messages, handoff, commands, failures, diff or commits,
-  and artifacts;
-- the suspected inefficiency and exact analysis question;
-- explicit exclusions from product review, tracked edits, finding closure,
-  gate acceptance, milestone decisions, orchestration, delegation, and any
-  inference about hidden reasoning or unseen sibling context.
+Before a correctness-sensitive writer starts, main records applicable
+ownership/lifetime/aliasing/cleanup, untrusted parsing and checked arithmetic,
+mutation/finalization/partial failure, concurrency/publication/shutdown,
+FFI/provenance/token transfer, policy/state/capability/resource, and
+quantitative/instrumentation/artifact-binding boundaries. Mark non-applicable
+ones explicitly. Main also selects review perspectives and names focused
+preflight and final gate commands. Unspecified public behavior returns to the
+user.
 
-Ordinarily inspect a role after it yields. If failure is suspected while a role
-is still running, the main session first requests a factual status packet or
-interrupts at a safe boundary. `process_reviewer` evaluates process design, not
-agent personality, and returns either `no supported inefficiency` or the
-observed evidence, likely process cause, bounded correction, expected benefit
-and tradeoff, and suggested lane. It cannot access or infer hidden reasoning or
-unseen sibling context and has no product-review, tracked-edit,
-finding-closure, gate-acceptance, milestone, orchestration, or delegation
-authority.
+### Lane 3 implementation
 
-When no correction is justified, the final handoff includes exactly:
-`Process retrospective: no actionable process correction identified.`
-Otherwise report only actionable proposals, each with observed evidence,
-inefficiency, proposed correction, expected benefit/risk, and proposed lane.
-Pure efficiency suggestions are non-blocking and final-report-only. They do not
-update `planning/IMPLEMENTATION_PROGRESS.md`, `evidence/process/REVIEW.md`, or a
-backlog. Repository changes require separate user authorization and fresh
-classification.
-
-## Lane 3 adversarial contract review
-
-Before writer activation for correctness-sensitive work, the main session and
-explorer record an adversarial contract matrix in the task envelope or
-milestone evidence. Cover every applicable boundary:
-
-- ownership, lifetime, aliasing, stale reuse, exhaustion, and cleanup;
-- untrusted parsing, truncation, malformed values, and checked arithmetic;
-- mutation, finalization, partial failure, and invalid-output prevention;
-- concurrency, ordering, publication, cancellation, and shutdown;
-- FFI/adapters, representation, provenance, and backend token transfer;
-- policy/state semantics, capability denial, defaults, and bounded resources;
-- quantitative gates, instrumentation validity, negative controls, and
-  artifact binding.
-
-Mark non-applicable boundaries explicitly. Before the writer starts, the main
-session also selects the independent reviewer perspectives and records the
-focused preflight and final gate commands. Public behavior that remains
-unspecified returns to the user; it is not resolved by the writer.
-
-## Lane 3 product and milestone workflow
-
-1. The main session performs the mandatory `AGENTS.md` startup checks and
-   states the active milestone, exit gate, intended verification, concrete
-   local `main` baseline, `milestone/<lowercase-id>` branch, and exact
-   post-integration commands.
-2. Spawn at least one `explorer` for a new feature or milestone envelope.
-   Multiple explorers are allowed only for independent, bounded read-only
-   questions. One activation remains valid for focused remediation within an
-   unchanged envelope; do not respawn solely because review found a defect.
-   Re-explore when scope, requirements, public behavior, architecture, or
-   relevant repository state changes materially, or when milestone-exit
-   reconciliation has not occurred.
-3. The main session resolves genuinely unspecified public behavior with the
-   user, completes the adversarial contract review when applicable, preselects
-   reviewer perspectives, and creates a bounded implementation handoff with
-   focused preflight and final exact-tree gate commands.
-4. Spawn exactly one implementer as the sole tracked-file writer. The writer
-   keeps code, tests, documentation, mappings, cleanup paths, and relevant
-   benchmark deltas together, follows the milestone Git lifecycle below, and
-   runs narrow checks while iterating.
-5. Stop the writer after it reports a stable diff. Spawn the selected
-   `reviewer` instances and `gate_verifier` independently; they may run
-   concurrently. The verifier runs only the focused affected preflight at this
-   stage.
-6. Record actionable findings in the milestone evidence closure register and
-   return them to the same implementer thread. The discovering reviewer or
-   verifier closes its own findings after focused remediation checks pass.
-7. For a correctness-sensitive milestone exit that produced a Critical or High
-   finding, run a fresh unanchored full-diff review after those findings close.
-   Give that reviewer the requirements, task envelope, and complete diff, not a
-   remediation checklist.
-8. After every blocking finding is closed, have `gate_verifier` run one final
-   exact-tree full gate. If it fails and the tree changes to correct the
-   failure, repeat the full gate on the corrected exact tree.
-9. The main session accepts the gate, then directs the selected sole writer to
-   record compact status and evidence. This recording task gives the writer no
-   gate-acceptance authority. A feature does not complete its milestone unless
-   every milestone condition passes.
-
-Do not run `fast_implementer` and `hard_implementer` as writers concurrently.
-A writer handoff requires the current writer to stop and report changed paths,
-verification already run, unresolved findings, and pending work.
+1. Complete the startup checks; record lane/tier, milestone, gate, baseline,
+   branch, checks, and post-integration commands.
+2. Run triggered exploration. For standard work without a trigger, main's
+   focused reconnaissance supplies the implementation packet.
+3. Complete the adversarial review and bounded sole-writer handoff.
+4. The selected writer implements coherent vertical slices with tests,
+   mappings, documentation, cleanup paths, and benchmark/ADR evidence as
+   applicable, using narrow checks while iterating.
+5. After a stable diff, run independent review and focused verification. They
+   may run concurrently when the delegation test justifies it.
+6. Register actionable findings and return them to the same writer thread.
+   Their discoverers rerun focused checks and alone declare closure.
+7. After a Critical or High correctness finding closes, run a fresh
+   unanchored full-diff review with the original requirements and complete
+   diff.
+8. After all blocking findings close, `gate_verifier` runs the final exact-tree
+   full gate. A corrective tree change requires a new commit and repeated gate.
+9. Main accepts the gate and directs the sole writer to record compact
+   acceptance evidence. Recording conveys no acceptance authority.
 
 ## Lane 3 milestone Git lifecycle
 
-This lifecycle applies to unfinished Lane 3 milestones, not ordinary Lane 1 or
-Lane 2 maintenance. Incremental commits are local recovery and review
-artifacts; accepted local `main` intentionally retains one squashed commit per
-milestone.
+This applies only to unfinished Lane 3 milestones.
 
-### Branch activation and ownership
+### Branch and commits
 
-1. Use exactly one local branch named `milestone/<lowercase-id>`, for example
-   `milestone/m2`, from the accepted predecessor state on local `main`. Only one
-   milestone branch may be active at a time. Deferred milestones and
-   later-risk spikes require a separate explicit main-session branch decision.
-2. Before creating, resuming, switching to, or integrating a milestone branch,
-   the writer inspects the complete tracked and untracked status. Any dirty
-   state stops the operation for a user decision through the main session; do
-   not stash, reset, clean, or absorb the files.
-3. If the exact branch already exists, resume it instead of creating an
-   alternate. Its declared base must match the recorded accepted local `main`
-   baseline. If the base is absent, ambiguous, or conflicts with current
-   `main`, stop and return the branch and commit evidence to the user.
-4. The main session owns branch-selection, orchestration, acceptance,
-   completion, and progression decisions. The selected sole writer exclusively
-   performs physical branch creation/switching, explicit-path staging,
-   commits, the permitted WIP-tip amendment, root-directed squash integration,
-   and local deletion. Other roles remain read-only or validation-only.
-5. Git activity stays local. Push, force-push, remote-branch creation or
-   deletion, and every other remote mutation require separate user
-   authorization.
+1. Use the exact local `milestone/<lowercase-id>` branch from the recorded
+   accepted local `main`; only one milestone branch may be active. Deferred
+   milestones and later-risk spikes require separate main activation.
+2. Before create, resume, switch, or integration, inspect complete tracked and
+   untracked status. Dirtiness, a missing/ambiguous base, branch conflict, or
+   advanced `main` stops for user direction. Never stash, reset, clean, or
+   absorb unrelated files.
+3. The writer alone performs branch changes, explicit-path staging, commits,
+   the permitted WIP-tip amendment, main-directed squash integration, and
+   local deletion. Remote mutations require separate user authorization.
+4. The first branch commit records `In progress`, date, and expected gate.
+   Commit each coherent vertical slice after focused checks and staged-diff
+   inspection.
+5. At most one `wip(<id>): ...` commit may exist, only at the tip. Amend it
+   into a semantic commit before another slice, review, or verification.
+   Never rewrite completed or reviewed commits; remediation uses new commits.
+6. Handoffs report clean status, branch, base, tip, ordered `BASE..TIP`
+   commits, changed paths, slice checks, failures/findings, and next action.
 
-### Incremental implementation commits
+### Review, gate, and integration
 
-1. The first commit on a new milestone branch updates
-   `planning/IMPLEMENTATION_PROGRESS.md` to `In progress`, adds the date, and
-   names the expected gate before production implementation begins.
-2. Each coherent vertical slice is a semantic commit that keeps implementation,
-   tests, requirement mappings, documentation, cleanup behavior, and applicable
-   benchmark evidence together. Before committing, run the named focused
-   checks, stage only explicit authorized paths, and inspect the complete staged
-   diff.
-3. At most one commit named `wip(<id>): ...` may exist, and it must be the
-   current branch tip. It may preserve an interrupted slice across sessions,
-   but the writer must amend it into a finished semantic commit before starting
-   another slice or yielding for review or verification. WIP commits are never
-   valid review or gate inputs.
-4. Do not amend, rebase, squash, or otherwise rewrite completed or reviewed
-   slice commits. Remediation is recorded in new commits. The only routine
-   history rewrite is amendment of the current permitted WIP tip; final squash
-   integration occurs under the exit procedure below.
-5. Every stable or interrupted handoff leaves a clean worktree and reports the
-   branch, recorded base, tip, ordered commits in `BASE..TIP`, changed paths,
-   per-slice checks, failures or findings, and next gated action. An interrupted
-   handoff contains only completed slice commits or one tip-only WIP commit.
+Reviewers reject WIP tips and inspect complete `BASE..TIP` plus full status.
+The final verifier requires a clean committed non-WIP tip, records commit and
+tree IDs before and after the gate, and rejects any change. Gate corrections
+are new commits and repeat the full exact-tree gate.
 
-### Review and exact-tree verification
+After main accepts:
 
-1. Reviewers reject a WIP tip and inspect the aggregate declared `BASE..TIP`,
-   plus complete tracked and untracked status, rather than only the last
-   commit.
-2. After review begins, every remediation is a new commit. The same discovering
-   reviewer or verifier closes its finding under the ordinary authority rules.
-3. The final verifier requires a clean, committed, non-WIP branch tip. Before
-   and after the gate, it records complete status, commit ID, and tree ID and
-   confirms they are unchanged. The gate result is bound to that exact commit
-   and tree.
-4. A correction after a failed or invalidated gate is a new commit and requires
-   the full exact-tree gate again.
+1. The writer commits permitted acceptance-only evidence/ledger wording.
+   Focused documentation/schema/link/diff checks suffice only if no gate input
+   changed; otherwise repeat the full gate.
+2. Record final branch tip and accepted commit/tree; confirm clean status and
+   unchanged baseline `main`.
+3. At explicit main direction, squash onto local `main` as
+   `milestone(<id>): complete <ledger title>`, with the pre-squash tip and
+   accepted commit/tree in the body.
+4. Prove branch/main tree identity, run the envelope's exact post-integration
+   commands, and confirm clean status.
+5. Only then may main direct forced deletion of the exact local branch. A
+   mismatch or failed check retains it. Never delete a remote branch here.
 
-### Acceptance and squash integration
+## Milestone exit
 
-1. After the main session accepts the gate, it directs the same sole writer to
-   commit the compact acceptance evidence and ledger wording. If only permitted
-   acceptance wording changed, apply the existing focused documentation,
-   schema, link, and diff checks. If executable or other gate inputs changed,
-   rerun the full gate and bind acceptance to the replacement commit and tree.
-2. Record the final branch tip, the accepted gated commit ID, and its tree ID.
-   Confirm the worktree is clean and local `main` still equals the task
-   envelope's concrete baseline. If `main` advanced, stop without integration
-   and retain the branch for user direction.
-3. At explicit main-session direction, squash the entire milestone branch onto
-   local `main` as one commit titled
-   `milestone(<id>): complete <ledger title>`. Its body records the final
-   pre-squash branch tip, accepted gated commit, and accepted gated tree.
-4. Compare the final branch tree ID with the new local `main` tree ID, run the
-   exact post-integration commands recorded in the task envelope, and confirm
-   complete tracked and untracked clean status. A mismatch or failed command
-   stops the workflow and retains the branch.
-5. Because squash integration does not make the milestone branch ancestral to
-   `main`, forced deletion of the exact local branch is allowed only after all
-   preceding identity and verification checks pass and the main session directs
-   it. Never delete a remote branch as part of this workflow.
+Before acceptance:
 
-## Lane 3 milestone-exit workflow
+1. Trigger `explorer` to reconcile the entire checklist, normative and
+   archived/local gates, code, tests, docs, benchmark deltas, and cleanup
+   evidence. Reuse only a still-valid reconciliation.
+2. Use critical routing for remaining correctness- or gate-sensitive work.
+3. Run applicable owner perspectives: core packet/ownership/mutation,
+   concurrency/QSBR, adapter/FFI, language/security, and/or performance.
+4. Close blocking findings and any required fresh review, then verify the final
+   exact tree with Debug, ReleaseSafe, ReleaseFast, and every required fuzz,
+   model, adapter, docs, schema, benchmark, and cross-target check.
+5. Accept only with a passing gate, no blocking finding, complete artifacts,
+   and an accurate progress ledger.
 
-Before accepting a milestone exit:
+Synthetic or virtual evidence never becomes physical acceptance or production
+capacity evidence. M0-H, M4, and later physical gates require their stated
+hardware, permissions, and user decisions.
 
-1. Ensure an `explorer` has reconciled the entire milestone checklist,
-   normative requirements, archived exit gate, local additions, code, tests,
-   documentation, benchmark deltas, and cleanup evidence. Reuse a still-valid
-   reconciliation for an unchanged envelope.
-2. Use `hard_implementer` for any remaining correctness- or gate-sensitive
-   remediation.
-3. Run one or more `reviewer` instances with the preselected perspectives:
-   core packet ownership/mutation, concurrency/QSBR, adapter/FFI,
-   language/security, or performance methodology.
-4. Close blocking findings, including any required fresh unanchored review,
-   then run `gate_verifier` on the final exact tree. The command set includes
-   Debug, ReleaseSafe, ReleaseFast, and every required fuzz, model, adapter,
-   documentation, schema, benchmark, or cross-target check.
-5. Accept the gate only when verification passes, no blocking review finding
-   remains, artifacts exist, and `planning/IMPLEMENTATION_PROGRESS.md`
-   accurately reports the evidence.
+## Findings and records
 
-Later-milestone work may run only as an explicitly labelled bounded spike. Its
-code and measurements do not satisfy the later gate or advance the ledger.
+Lane 1 has no register. Lane 2 records only material actionable findings in
+`evidence/process/REVIEW.md` as `PROC-<PERSPECTIVE>-NNN`. Lane 3 records them
+in `evidence/<milestone>/REVIEW.md` as
+`M<milestone>-<PERSPECTIVE>-NNN`.
 
-## Finding and remediation contract
+Each entry contains status (`open`, `addressed`, `closed`), severity,
+requirement/invariant/gate, discoverer, assigned writer, concrete evidence,
+expected and observed behavior, reproduction and seed/trace where applicable,
+failing layer, bounded remediation/rechecks, addressing evidence, and closure
+result. The writer alone declares `addressed`; the discovering reviewer or
+verifier alone declares `closed` after rerunning its checks. The writer records
+reported status at main direction but gains no closure authority. The verifier
+never fixes failures.
 
-Lane 1 has no findings register.
+Keep milestone starts, blocked/reopened states, material gate changes, and
+final acceptance in `planning/IMPLEMENTATION_PROGRESS.md`. Put detailed
+findings, chronology, logs, and seeds in the relevant register.
 
-### Lane 2 process register
+## Specification maintenance
 
-Record only material actionable findings that require remediation in
-`evidence/process/REVIEW.md`, using stable
-`PROC-<PERSPECTIVE>-NNN` identifiers. Record status, severity, discovering
-role, assigned implementer, affected workflow, observed issue, bounded
-remediation, required focused checks, addressing evidence, and closure result.
-A clean review creates no entry; non-material hygiene may be retained only as
-a short unnumbered audit note.
+`planning/specification/` is frozen during milestone implementation. Actual
+normative edits occur only in a separately activated spec-maintenance session
+on `spec/<slug>`, never while a milestone branch is active. They are Lane 3
+even when documentation-only.
 
-### Lane 3 milestone register
+Main must first prove `spec_editor` and `spec_reviewer` routing with the role
+smoke, reconcile source authority and downstream migration impact, and record
+the branch/base/checks. `spec_editor` is the sole writer; `spec_reviewer` and
+`gate_verifier` independently review and verify the exact tree. No role-routing
+proof means no delegated specification edit; stop for a supported surface or
+explicit user direction. Specification maintenance cannot silently change
+milestone facts, waive gates, or overlap product implementation.
 
-In Lane 3, record each review and verification finding under
-`evidence/<milestone>/REVIEW.md` with a stable
-`M<milestone>-<perspective>-NNN` identifier, such as `M2-CORE-001`. Each entry
-reports:
+Specification findings use `evidence/spec/<slug>/REVIEW.md` and stable
+`SPEC-<PERSPECTIVE>-NNN` IDs. Ordinary Lane 3 remediation authority applies:
+the sole spec editor declares a finding `addressed`, its discovering reviewer
+or verifier alone declares it `closed` after focused recheck, and the main
+session alone accepts the specification gate. Any corrective tree change after
+an exact-tree gate requires a new commit and repetition of that gate.
 
-- status: `open`, `addressed`, or `closed`;
-- severity and affected requirement, invariant, or gate;
-- discovering role and assigned implementer;
-- file, symbol, command, or artifact evidence;
-- expected versus observed behavior;
-- reproduction steps and randomized seed or minimized trace when applicable;
-- the precise failing layer;
-- a bounded remediation and the checks that must be repeated;
-- the addressing diff/evidence and closure result.
+Specification branches use their own integration contract, not the milestone
+squash lifecycle. Verification requires a clean, committed, non-WIP
+`spec/<slug>` tip. After acceptance, the sole spec editor confirms local `main`
+still equals the recorded baseline, switches to local `main`, and fast-forwards
+it with `git merge --ff-only spec/<slug>`. The editor proves the resulting
+`main` tree equals the accepted spec-branch tree, runs the recorded
+post-integration checks, and deletes the exact local spec branch only on
+main-session direction. Any advanced `main`, mismatch, or failed check stops
+and retains the branch. Specification maintenance does not squash or mutate
+remotes without separate user authorization.
 
-### Finding authority
+## Process reviewer and retrospective
 
-Only the implementer may declare `addressed`; only the reviewer or verifier
-that discovered the finding may declare `closed` after rerunning its required
-checks. Those read-only roles report closure without editing tracked files; the
-selected sole writer records the reported status at the main session's
-direction. Recording a status gives the writer neither closure nor acceptance
-authority. The verifier never fixes failures. The main session routes findings
-to the same implementer unless the failure proves that the task was
-misclassified.
+The main session activates `process_reviewer` only for:
 
-For Lane 3, intermediate diffs receive only narrow affected checks and focused
-preflight. Run the expensive cumulative gate once, after blocking findings
-close. A failed full gate must be repeated after any corrective tree change.
-If a passing full gate is followed only by acceptance wording in evidence or
-the progress ledger, rerun affected documentation, schema, link, and diff
-checks; rerun the full gate if executable code, test inputs, build wiring,
-schemas consumed by the gate, or other gate inputs changed.
+- repeated friction;
+- authority ambiguity that caused a finding;
+- an orchestration-caused gate rerun;
+- a genuine need for `fork_turns="all"`;
+- role-routing failure;
+- milestone closure.
 
-## Progress records
+The evidence packet names the subject contract, observable messages/handoff,
+commands/failures/diff/commits/artifacts, exact process question, and
+exclusions from product review, tracked edits, finding closure, gate
+acceptance, milestone decisions, orchestration, delegation, or hidden/unseen
+reasoning. Inspect after the subject yields; if necessary, first obtain a
+factual status packet or interrupt safely.
 
-`planning/IMPLEMENTATION_PROGRESS.md` contains milestone starts, blocked or
-reopened states, material gate changes, and final acceptance. Store
-per-finding and remediation chronology, repeated command results, seeds, and
-full logs in the applicable milestone or process closure register instead of
-adding a ledger row for every review cycle.
+The process reviewer returns either `no supported inefficiency` or evidence,
+likely process cause, bounded correction, expected benefit/tradeoff, and
+suggested lane. It has no other authority. `hard_implementer`, `reviewer`, and
+`gate_verifier` may each report at most one directly encountered,
+evidence-backed friction observation. No role supplies mandatory empty
+retrospective fields; explorer, fast, standard, and specification roles remain
+task-only.
 
-## Hardware boundary
-
-M0-H, M4, and later physical acceptance require their documented hardware,
-testbed, permissions, and user decisions. Explorers and verifiers must report
-missing resources precisely. Virtual PMD, synthetic, loopback, or local
-benchmark evidence cannot be relabelled as physical acceptance or production
-capacity evidence.
-
-## Current Lane 3 activation example: M2
-
-M2 is the next predecessor-gated milestone and remains `Not started` until the
-main session activates it. Its implementation packet must cover active
-selection, dispositions and output grouping, lazy L2/L3/L4 parsing and
-fragment semantics, structured mutation and the trusted raw-editor capability
-boundary, mutation journaling and failure-atomic checksum/length finalization,
-and bounded retention leases. Its exit gate is AC-001, AC-002, AC-010, and all
-packet-related invariants, with proof that injected mutation failure cannot
-transmit a corrupted packet.
-
-Preselect these M2 reviewer perspectives before writer activation:
-
-- core packet ownership, selection, dispositions, mutation, and finalization;
-- language/security for untrusted parsing and raw-editor boundaries;
-- performance methodology for parser/no-op baselines and instrumentation;
-- adapter/FFI only if that boundary changes;
-- concurrency only if shared ownership or synchronization is introduced.
-
-The ordinary routing is:
-
-1. `explorer` reconciles the M2 checklist, contracts, relevant M1 boundaries,
-   and required evidence, and the main session records the adversarial matrix.
-2. `hard_implementer` owns the M2 public contracts and implementation;
-   `fast_implementer` is limited to a separately bounded low-risk follow-up.
-3. Intermediate preflight is `nix develop --command zig build test` plus the
-   explicitly named affected M2 property, differential, benchmark, and
-   documentation steps introduced in the task envelope.
-4. After blocking findings close, `gate_verifier` runs
-   `nix develop --command zig build ci` on the exact final tree. That cumulative
-   gate must cover Debug, ReleaseSafe, ReleaseFast, AArch64, truncation and
-   fragment cases, Scapy differential checks, failure atomicity, lease
-   exhaustion/leak checks, requirement mappings, documentation, schemas, and
-   parser/no-op baselines for batches 1/4/8/16/32/64.
+Every completed, interrupted, or blocked implementation run ends with
+main-session synthesis after verification. Planning and read-only answers do
+not. If no correction is supported, report exactly:
+`Process retrospective: no actionable process correction identified.`
+Otherwise report only actionable evidence, inefficiency, bounded correction,
+benefit/risk, and proposed lane. Efficiency proposals are non-blocking and
+final-report-only until separately authorized and reclassified.
