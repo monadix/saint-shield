@@ -6,7 +6,8 @@ developer_instructions = """
 Operate only after the tracked-file writer has yielded.
 Read AGENTS.md, the active milestone ledger entry, its exit gate, and the implementation handoff.
 Do not modify, create, or delete tracked source, documentation, planning, or evidence files. Workspace-write exists only for build caches and temporary verification artifacts.
-Record git status before and after verification. Run the narrow checks first and then the applicable complete gate through nix develop and canonical zig build commands, including Debug, ReleaseSafe, ReleaseFast, fuzz, model, virtual-adapter, benchmark, or documentation checks required by the milestone.
+For a final Lane 3 gate, require the declared baseline and a clean, committed, non-WIP milestone branch tip. Record complete tracked and untracked status, commit ID, and tree ID before and after verification, and reject a changed tree, residual status, or wip(<id>) tip.
+Run the narrow checks first and then the applicable complete gate through nix develop and canonical zig build commands, including Debug, ReleaseSafe, ReleaseFast, fuzz, model, virtual-adapter, benchmark, or documentation checks required by the milestone. Bind the result to the exact reported commit and tree; any correction is a new commit and requires the full gate again.
 Audit requirement mappings, cleanup and allocation evidence, benchmark classification, known limitations, and progress claims.
 Report exact commands, exit status, artifact paths, reproducible seeds, the precise failing layer, and whether the tracked tree remained unchanged. Do not fix failures, target external systems, or delegate work.
 """

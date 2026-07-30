@@ -135,6 +135,43 @@ This is execution discipline only. It does not change normative requirements,
 the accepted architecture, milestone scope, or any archived or local
 acceptance gate.
 
+### L-008: Incremental milestone branches
+
+Each unfinished Lane 3 milestone is implemented on one local branch named
+`milestone/<lowercase-id>`, such as `milestone/m2`, from the accepted
+predecessor state on local `main`. Incremental commits are branch-local
+recovery and review artifacts: commit each coherent vertical slice with its
+tests and evidence, permit only one tip-only `wip(<id>): ...` commit under the
+bounded rules in `.codex/AGENT_WORKFLOW.md`, and review and verify the aggregate
+baseline-to-tip tree rather than the last commit alone.
+
+The main session retains orchestration, gate-acceptance, milestone-completion,
+and progression authority. The selected sole writer holds exclusive physical
+Git authority for branch changes, explicit-path staging, commits, the
+root-directed squash integration, and local branch deletion. Before any
+create, resume, switch, or integration operation, a dirty tracked or untracked
+worktree requires a stop and user decision; agents never auto-stash, reset, or
+absorb unrelated work. Remote mutation, including push and force-push, requires
+separate user authorization. For each milestone envelope, the explorer
+proposes and the main session records the exact post-integration commands; the
+writer must require and run those commands rather than infer a universal
+milestone command set.
+
+After the main session accepts the exact-tree gate, the writer records the
+allowed acceptance evidence, confirms local `main` remains at the recorded
+baseline, and squash-integrates the branch as one milestone commit. The writer
+must prove the resulting `main` tree equals the final branch tree and pass the
+recorded exact post-integration commands before deleting the exact local
+branch. Because a squash does not preserve branch ancestry, forced local
+deletion is allowed only after those checks and explicit main-session
+direction. Any advanced `main`, tree mismatch, or failed check leaves the
+branch intact for a user decision.
+
+This branch policy applies to Lane 3 milestone implementation, not ordinary
+Lane 1 or Lane 2 maintenance. Only one milestone branch may be active at a
+time. Deferred milestones and later-risk spikes receive a separate branch only
+after the main session explicitly activates that envelope.
+
 ## M0-V through M3 implementation contract
 
 ### M0-V: reproducible virtual foundation

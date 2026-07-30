@@ -22,6 +22,15 @@ Every delegated task names:
 - the lane-required focused checks and, for Lane 3, the final exact-tree gate
   commands.
 
+Every Lane 3 milestone task also records the concrete local `main` baseline
+commit, the required `milestone/<lowercase-id>` branch name, whether that branch
+already exists, complete tracked and untracked clean status, allowed paths,
+focused checks required before each planned slice commit, and the final
+exact-tree gate commands. It also names the exact envelope-specific
+post-integration commands proposed by the explorer and selected by the main
+session; there is no universal inferred milestone command set. These facts are
+part of the task boundary, not defaults for the writer to infer.
+
 Security-adjacent tasks must also state that external targeting, broad
 scanning, credential access, exploitation, exfiltration, malware deployment,
 and destructive actions are out of scope unless a separately authorized
@@ -121,7 +130,9 @@ unspecified returns to the user; it is not resolved by the writer.
 ## Lane 3 product and milestone workflow
 
 1. The main session performs the mandatory `AGENTS.md` startup checks and
-   states the active milestone, exit gate, and intended verification.
+   states the active milestone, exit gate, intended verification, concrete
+   local `main` baseline, `milestone/<lowercase-id>` branch, and exact
+   post-integration commands.
 2. Spawn at least one `explorer` for a new feature or milestone envelope.
    Multiple explorers are allowed only for independent, bounded read-only
    questions. One activation remains valid for focused remediation within an
@@ -135,7 +146,8 @@ unspecified returns to the user; it is not resolved by the writer.
    focused preflight and final exact-tree gate commands.
 4. Spawn exactly one implementer as the sole tracked-file writer. The writer
    keeps code, tests, documentation, mappings, cleanup paths, and relevant
-   benchmark deltas together and runs narrow checks while iterating.
+   benchmark deltas together, follows the milestone Git lifecycle below, and
+   runs narrow checks while iterating.
 5. Stop the writer after it reports a stable diff. Spawn the selected
    `reviewer` instances and `gate_verifier` independently; they may run
    concurrently. The verifier runs only the focused affected preflight at this
@@ -158,6 +170,98 @@ unspecified returns to the user; it is not resolved by the writer.
 Do not run `fast_implementer` and `hard_implementer` as writers concurrently.
 A writer handoff requires the current writer to stop and report changed paths,
 verification already run, unresolved findings, and pending work.
+
+## Lane 3 milestone Git lifecycle
+
+This lifecycle applies to unfinished Lane 3 milestones, not ordinary Lane 1 or
+Lane 2 maintenance. Incremental commits are local recovery and review
+artifacts; accepted local `main` intentionally retains one squashed commit per
+milestone.
+
+### Branch activation and ownership
+
+1. Use exactly one local branch named `milestone/<lowercase-id>`, for example
+   `milestone/m2`, from the accepted predecessor state on local `main`. Only one
+   milestone branch may be active at a time. Deferred milestones and
+   later-risk spikes require a separate explicit main-session branch decision.
+2. Before creating, resuming, switching to, or integrating a milestone branch,
+   the writer inspects the complete tracked and untracked status. Any dirty
+   state stops the operation for a user decision through the main session; do
+   not stash, reset, clean, or absorb the files.
+3. If the exact branch already exists, resume it instead of creating an
+   alternate. Its declared base must match the recorded accepted local `main`
+   baseline. If the base is absent, ambiguous, or conflicts with current
+   `main`, stop and return the branch and commit evidence to the user.
+4. The main session owns branch-selection, orchestration, acceptance,
+   completion, and progression decisions. The selected sole writer exclusively
+   performs physical branch creation/switching, explicit-path staging,
+   commits, the permitted WIP-tip amendment, root-directed squash integration,
+   and local deletion. Other roles remain read-only or validation-only.
+5. Git activity stays local. Push, force-push, remote-branch creation or
+   deletion, and every other remote mutation require separate user
+   authorization.
+
+### Incremental implementation commits
+
+1. The first commit on a new milestone branch updates
+   `planning/IMPLEMENTATION_PROGRESS.md` to `In progress`, adds the date, and
+   names the expected gate before production implementation begins.
+2. Each coherent vertical slice is a semantic commit that keeps implementation,
+   tests, requirement mappings, documentation, cleanup behavior, and applicable
+   benchmark evidence together. Before committing, run the named focused
+   checks, stage only explicit authorized paths, and inspect the complete staged
+   diff.
+3. At most one commit named `wip(<id>): ...` may exist, and it must be the
+   current branch tip. It may preserve an interrupted slice across sessions,
+   but the writer must amend it into a finished semantic commit before starting
+   another slice or yielding for review or verification. WIP commits are never
+   valid review or gate inputs.
+4. Do not amend, rebase, squash, or otherwise rewrite completed or reviewed
+   slice commits. Remediation is recorded in new commits. The only routine
+   history rewrite is amendment of the current permitted WIP tip; final squash
+   integration occurs under the exit procedure below.
+5. Every stable or interrupted handoff leaves a clean worktree and reports the
+   branch, recorded base, tip, ordered commits in `BASE..TIP`, changed paths,
+   per-slice checks, failures or findings, and next gated action. An interrupted
+   handoff contains only completed slice commits or one tip-only WIP commit.
+
+### Review and exact-tree verification
+
+1. Reviewers reject a WIP tip and inspect the aggregate declared `BASE..TIP`,
+   plus complete tracked and untracked status, rather than only the last
+   commit.
+2. After review begins, every remediation is a new commit. The same discovering
+   reviewer or verifier closes its finding under the ordinary authority rules.
+3. The final verifier requires a clean, committed, non-WIP branch tip. Before
+   and after the gate, it records complete status, commit ID, and tree ID and
+   confirms they are unchanged. The gate result is bound to that exact commit
+   and tree.
+4. A correction after a failed or invalidated gate is a new commit and requires
+   the full exact-tree gate again.
+
+### Acceptance and squash integration
+
+1. After the main session accepts the gate, it directs the same sole writer to
+   commit the compact acceptance evidence and ledger wording. If only permitted
+   acceptance wording changed, apply the existing focused documentation,
+   schema, link, and diff checks. If executable or other gate inputs changed,
+   rerun the full gate and bind acceptance to the replacement commit and tree.
+2. Record the final branch tip, the accepted gated commit ID, and its tree ID.
+   Confirm the worktree is clean and local `main` still equals the task
+   envelope's concrete baseline. If `main` advanced, stop without integration
+   and retain the branch for user direction.
+3. At explicit main-session direction, squash the entire milestone branch onto
+   local `main` as one commit titled
+   `milestone(<id>): complete <ledger title>`. Its body records the final
+   pre-squash branch tip, accepted gated commit, and accepted gated tree.
+4. Compare the final branch tree ID with the new local `main` tree ID, run the
+   exact post-integration commands recorded in the task envelope, and confirm
+   complete tracked and untracked clean status. A mismatch or failed command
+   stops the workflow and retains the branch.
+5. Because squash integration does not make the milestone branch ancestral to
+   `main`, forced deletion of the exact local branch is allowed only after all
+   preceding identity and verification checks pass and the main session directs
+   it. Never delete a remote branch as part of this workflow.
 
 ## Lane 3 milestone-exit workflow
 

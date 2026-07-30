@@ -160,6 +160,48 @@ acceptance, completion, and progression.
   sole writer to record those decisions; this does not grant the writer closure
   or acceptance authority or make the main session a second writer.
 
+### Incremental Git discipline for Lane 3 milestones
+
+- Implement each unfinished Lane 3 milestone on one local branch named
+  `milestone/<lowercase-id>`, based on the accepted predecessor state on local
+  `main`. Only one milestone branch may be active. Resume an existing exact-name
+  branch; do not create an alternate. A deferred milestone or later-risk spike
+  gets a separate branch only after explicit main-session activation.
+- The task envelope records the concrete local `main` baseline hash, milestone
+  branch, clean status, allowed paths, focused checks for each slice, and final
+  exact-tree gate, plus the exact envelope-specific post-integration commands
+  selected by the main session. Before branch creation, resumption, switching,
+  or integration, inspect all tracked and untracked status. If it is dirty, or
+  an existing branch does not have the recorded `main` base, stop for user
+  direction; never auto-stash, reset, or absorb unrelated work.
+- The selected sole writer exclusively creates or switches branches, stages
+  explicit paths, commits or performs the permitted WIP-tip amendment, and,
+  when directed by the main session, squash-integrates and deletes the local
+  branch. No agent pushes, force-pushes, deletes a remote branch, or otherwise
+  mutates a remote without separate user authorization.
+- The first milestone-branch commit records `In progress`, its date, and the
+  expected gate. Commit every coherent vertical slice with its tests, mappings,
+  documentation, cleanup paths, and applicable evidence after focused checks
+  pass and the staged diff is reviewed. A single `wip(<id>): ...` commit may be
+  the branch tip across sessions, but it must be amended into a finished
+  semantic commit before another slice, review, or verification.
+- Reviewers inspect the complete declared `BASE..TIP` and worktree status.
+  Completed or reviewed commits are not rewritten; remediation uses new
+  commits. The final gate runs only on a clean, committed, non-WIP tip and is
+  bound to its commit and tree hashes. A corrective tree change requires a new
+  commit and a repeated full gate.
+- After gate acceptance, the writer commits permitted acceptance-only evidence
+  and ledger wording under the existing post-gate rules. It then confirms
+  local `main` is still the recorded baseline, squash-integrates to
+  `milestone(<id>): complete <ledger title>`, records the final branch tip and
+  gated commit/tree in the commit body, proves branch/main tree identity, runs
+  the recorded exact post-integration commands, and confirms clean status. Only
+  then, and only on main-session direction, may it force-delete the exact local
+  branch because a squash is not ancestral. Any mismatch, advanced `main`, or
+  check failure leaves the branch intact and returns the decision to the user.
+
+Ordinary Lane 1 and Lane 2 maintenance does not use milestone branches.
+
 ## Cybersecurity safety and precise task framing
 
 These rules apply to every agent working in this workspace, including any

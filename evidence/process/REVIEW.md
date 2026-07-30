@@ -99,6 +99,59 @@ retrospective; the old IDs remain as cross-references.
   decisions, and sole-writer physical recording, and declared PROC-GOV-004
   closed.
 
+## PROC-GOV-005: Post-integration command-selection gap
+
+- Discoverer: `reviewer`
+- Assigned implementer: `fast_implementer`
+- Severity: Medium
+- Status progression: `open` -> `addressed` -> `closed`
+- Affected workflow: Lane 3 task envelopes and milestone squash integration
+- Observed issue: post-integration checks were prerequisites for accepting the
+  squash and deleting the local milestone branch, but the task-envelope and
+  role contracts did not require the main session to select their exact
+  commands.
+- Bounded remediation: require the explorer to propose, the main session to
+  select and record, and the sole writer to require and run exact
+  envelope-specific post-integration commands while preserving final
+  branch/main tree-ID equality and complete clean-status checks.
+- Required focused checks: exact/recorded post-integration command searches,
+  TOML parsing, documentation/link validation, unchanged specification and
+  milestone ledger, and diff hygiene.
+- Addressing evidence: `AGENTS.md`, L-008 in
+  `planning/LOCAL_EXECUTION_PLAN.md`, `.codex/AGENT_WORKFLOW.md`, and the
+  explorer and implementer role instructions now assign the proposal,
+  selection, recording, and execution responsibilities without inventing a
+  universal milestone command set.
+- Closure evidence: the discovering reviewer rechecked those governance and
+  role surfaces, confirmed that exact envelope-specific post-integration
+  commands are required while tree equality and clean status remain mandatory,
+  and declared PROC-GOV-005 closed.
+
+## PROC-GOV-006: Conflicting remote-mutation authorization
+
+- Discoverer: `reviewer`
+- Assigned implementer: `fast_implementer`
+- Severity: Low
+- Status progression: `open` -> `addressed` -> `closed`
+- Affected workflow: sole-writer local and remote Git authority
+- Observed issue: the common governance documents allowed remote mutation with
+  separate user authorization while both implementer role instructions
+  prohibited it unconditionally.
+- Bounded remediation: make both implementer roles local-only by default and
+  prohibit push, force-push, or other remote mutation unless the user
+  separately authorizes it. The current process-change envelope remains
+  local-only.
+- Required focused checks: conditional remote-authorization searches, TOML
+  parsing, documentation/link validation, unchanged specification and
+  milestone ledger, and diff hygiene.
+- Addressing evidence: `.codex/agents/fast_implementer.toml` and
+  `.codex/agents/hard_implementer.toml` now use the same conditional remote
+  authority as `AGENTS.md`, L-008, and `.codex/AGENT_WORKFLOW.md`.
+- Closure evidence: the discovering reviewer rechecked both implementer roles
+  against the common governance documents, confirmed the consistent
+  local-by-default rule with separate user authorization required for remote
+  mutation, and declared PROC-GOV-006 closed.
+
 ## Non-material hygiene audit
 
 The trailing whitespace formerly recorded as `M1-GATE-002` was removed and
