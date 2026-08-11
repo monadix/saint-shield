@@ -233,7 +233,7 @@ retrospective; the old IDs remain as cross-references.
   reviewer)
 - Assigned implementer: `fast_implementer`
 - Severity: Medium
-- Status progression: `open` -> `addressed` (closure remains pending)
+- Status progression: `open` -> `addressed` -> `closed`
 - Affected workflow: High/Critical Lane 3 ownership and authority-return
   remediation sequencing
 - Observed issue: repeated M2 alias/authority remediations proceeded to
@@ -252,10 +252,14 @@ retrospective; the old IDs remain as cross-references.
   diff audit.
 - Addressing evidence: this commit adds the canonical checkpoint and concise
   AGENTS pointer in `.codex/AGENT_WORKFLOW.md` and `AGENTS.md`, and records
-  this finding as addressed without closing it. Required commands and product
-  and milestone acceptance gates remain unchanged.
-- Closure evidence: pending independent governance review and any required
-  gate verification; the writer does not close this finding.
+  this finding as addressed. Required commands and product and milestone
+  acceptance gates remain unchanged.
+- Closure evidence: the successor governance reviewer declared CLEAR/CLOSED
+  after reviewing the complete `aaa406a..ea7cff8` tree, the exact three-path
+  audit, authority/trigger/non-gate semantics, `git diff --check`, and the
+  pinned `nix develop --command zig build docs-check` result (31 links
+  passed). The tip, tree, and status were unchanged during review. This
+  closure records reviewer authority and does not accept the process gate.
 
 ## Non-material hygiene audit
 
