@@ -206,13 +206,18 @@ def validate_records(
                     f"{test_name!r}"
                 )
 
-    missing = EXPECTED_M1_IDS - seen
-    unexpected = seen - EXPECTED_M1_IDS
+    m1_seen = {
+        str(record["id"])
+        for record in records
+        if record.get("since") == "0.1.0-m1"
+    }
+    missing = EXPECTED_M1_IDS - m1_seen
+    unexpected = m1_seen - EXPECTED_M1_IDS
     if missing:
         failures.append(f"M1 map lacks required IDs: {', '.join(sorted(missing))}")
     if unexpected:
         failures.append(
-            "M1 map claims future or unselected IDs: "
+            "M1 entries claim future or unselected IDs: "
             + ", ".join(sorted(unexpected))
         )
     return failures

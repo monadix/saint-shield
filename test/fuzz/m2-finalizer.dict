@@ -1,0 +1,8 @@
+# SPDX-License-Identifier: Apache-2.0
+mutate_ipv4_ttl="\x01"
+mutate_ipv6_hop="\x02"
+mutate_udp_port="\x04"
+mutate_tcp_flags="\x08"
+append="\x10"
+inject_failure="\x20"
+raw_validate="\x40"

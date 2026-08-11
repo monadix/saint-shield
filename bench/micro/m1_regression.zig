@@ -68,6 +68,8 @@ pub fn main() !void {
 
     var output = try synthetic.OutputQueue.init(observed_allocator, traversal_count);
     defer output.deinit();
+    const owner = try packet.PacketBatchOwner.init(observed_allocator);
+    defer owner.deinit();
     const allocator_before = counting_allocator.snapshot();
     const packet_path_before = input.packetPathSnapshot();
     var slots: [packet.max_batch]packet.PacketSlot = undefined;
@@ -76,8 +78,12 @@ pub fn main() !void {
     while (accepted < traversal_count) {
         const count = try input.receive(&slots, packet.max_batch);
         if (count == 0) return error.UnexpectedIdle;
-        for (slots[0..count]) |*slot| {
-            try output.submit(slot);
+        const batch = try owner.begin(
+            .{ .input_id = .init(1), .queue_id = .init(1) },
+            slots[0..count],
+        );
+        for (slots[0..count], 0..) |*slot, batch_index| {
+            try output.submitBatch(batch, owner, batch_index);
             const size = accepted / 2;
             if (!try output.matches(accepted, expected[0..size]))
                 return error.PayloadMismatch;
@@ -93,6 +99,7 @@ pub fn main() !void {
             }
             accepted += 1;
         }
+        try batch.invalidate(owner);
     }
     try input.verifyCompleted();
 

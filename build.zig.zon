@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 .{
     .name = .saint_shield,
-    .version = "0.1.0-m1",
+    .version = "0.2.0-m2",
     .fingerprint = 0x52dedc60f53c7d38,
     .minimum_zig_version = "0.16.0",
     .paths = .{

@@ -85,6 +85,6 @@
     {"if": {"properties": {"valid": {"const": true}}}, "then": {"properties": {"invalid_reason": {"type": "null"}}}},
     {"if": {"properties": {"valid": {"const": false}}}, "then": {"properties": {"invalid_reason": {"type": "string", "minLength": 1}}}},
     {"if": {"properties": {"backend": {"properties": {"name": {"const": "dpdk"}}}}}, "then": {"properties": {"backend": {"properties": {"version": {"const": "25.11.2"}}}}}},
-    {"if": {"properties": {"backend": {"properties": {"name": {"const": "synthetic"}}}}}, "then": {"properties": {"backend": {"properties": {"version": {"enum": ["m0v", "m1"]}}}}}}
+    {"if": {"properties": {"backend": {"properties": {"name": {"const": "synthetic"}}}}}, "then": {"properties": {"backend": {"properties": {"version": {"enum": ["m0v", "m1", "m2"]}}}}}}
   ]
 }

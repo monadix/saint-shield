@@ -1,0 +1,69 @@
+{
+  "schema": "saint-shield-m2-fuzz/v1",
+  "target": "finalizer",
+  "timestamp_utc": "2026-08-11T19:09:54.877788+00:00",
+  "source_commit": "05eb395c91902e41961f7164c18d9a50a5f37d7f",
+  "source_tree": "1e16b2e823b6bfb86afb0bc33ac10fef4be4675c",
+  "dirty": false,
+  "tool": {
+    "aflplusplus": "afl-fuzz++5.00c",
+    "mode": "qemu"
+  },
+  "settings": {
+    "campaign_seconds": 2,
+    "execution_timeout_ms": 500,
+    "maximum_input_bytes": 4096,
+    "memory_limit": "none",
+    "deterministic_seed_replay": true,
+    "coverage_showmap": true,
+    "semantic_negative_control": true
+  },
+  "sources": [
+    {
+      "path": "test/fuzz/m2_finalizer_fuzz.zig",
+      "sha256": "fb997a8e9e8129886d878d211e9177e123f7262b531fa2a114e437371488237d"
+    },
+    {
+      "path": "test/fuzz/m2_fuzz_main.c",
+      "sha256": "16e3a52c623b9e3ddc9213a8a82d27b66f9cb6080655ff55fae35eef0311b7e6"
+    },
+    {
+      "path": "tools/m2/fuzz-smoke.sh",
+      "sha256": "c9e6748413669a69ab632534a08cc032d044411f7de6131c9c493e4ddd83871a"
+    },
+    {
+      "path": "tools/m2/decode-fuzz-seeds.py",
+      "sha256": "78f531b85e0a67c9afb6ebaee21d54c8bd4db3fbfbe3cd25be2cfe9eae0770b8"
+    }
+  ],
+  "seeds": [
+    {
+      "path": "test/fuzz/m2-finalizer-corpus/failure-short.hex",
+      "sha256": "476192462763d9d8d277fdcc356905113dbff45639d2b02adb99c6ac393298ed"
+    },
+    {
+      "path": "test/fuzz/m2-finalizer-corpus/ipv4-udp-edit.hex",
+      "sha256": "38396ed7362de33f593b536f89d728582e3c0e3d365f51b9510474f2c1285a87"
+    }
+  ],
+  "dictionary": {
+    "path": "test/fuzz/m2-finalizer.dict",
+    "sha256": "e2de6672cab0c11144a782d0fe4087efc1b3754062075c9da7f330cf150cb5c8"
+  },
+  "coverage_map_sha256": "469e096557d2d22a06244f3bd5c9cb2c0f6b2846154b817464de77b55351bdb9",
+  "result": {
+    "status": "pass",
+    "saved_crashes": 0,
+    "saved_timeouts": 0
+  },
+  "failure_workflow": {
+    "minimizer": "afl-tmin -Q",
+    "reproducer": "sh tools/m2/fuzz-smoke.sh finalizer --reproduce RAW_INPUT",
+    "reported_fields": [
+      "seed_path",
+      "minimized_trace_hex",
+      "reproducer"
+    ]
+  },
+  "claim_scope": "bounded synthetic regression only; not exhaustive proof"
+}

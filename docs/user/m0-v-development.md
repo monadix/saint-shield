@@ -29,7 +29,8 @@ interface inside the shell; no global package installation is needed.
 | `zig build schemas` | Validate benchmark/environment examples. |
 | `zig build integrity` | Verify versions, hashes, licenses, and source manifests. |
 | `zig build ci-m0-v` | Run the complete M0-V hardware-free gate. |
-| `zig build ci` | Run the cumulative current-milestone gate (M1). |
+| `zig build ci-m1` | Run the independently invocable cumulative M1 gate. |
+| `zig build ci` | Run the cumulative current-milestone gate (M2). |
 
 Select semantics with `-Doptimize=Debug`, `ReleaseSafe`, or `ReleaseFast`.
 

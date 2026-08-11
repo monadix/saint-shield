@@ -5,8 +5,9 @@
 `packet` defines backend-neutral input/output identities, input origin,
 adapter-token ownership states, receive-order slots, validated packet segments,
 read-only `PacketView`, ordered `PacketBatch`, and address-stable processing
-owners. It does not receive or transmit packets, allocate payload storage,
-parse protocol headers, mutate packets, or choose final dispositions.
+owners. M2 adds preallocated parse/mutation caches, explicit mutable
+descriptors, selections, dispositions, editors/finalization, and bounded
+retention. It does not receive or transmit packets or allocate payload storage.
 
 ## Requirements and invariants
 
@@ -16,19 +17,26 @@ reconciliation enforce INV-PKT-001. One allocator-owned, address-stable
 `PacketBatchOwner` controls monotonic generations across call frames to enforce
 INV-PKT-002 in safe code and tests. A setup-only atomic allocator assigns every
 owner a process-unique, monotonic non-pointer identity without reuse.
+M2 maps the remaining FR-PKT-001..013 behavior plus FR-TEST-003 and enforces
+INV-PKT-003..005. Detailed parser, mutation, finalization, disposition, and
+retention rules are in [M2 packet-processing internals](m2-packet-processing.md).
 
 ## Public contract
 
 `PacketSlot.init` validates at most 16 untrusted segment descriptors with
 checked total-length arithmetic. `PacketView.contiguous` is the zero-copy fast
 path; `read` explicitly copies a requested range; `segments` iterates at most
-16 borrowed pieces. All byte ranges are bounds/overflow checked. A batch holds
-at most 64 slots, preserves strictly increasing receive order, and permits
-empty or partial lengths. Public batch and view handles are fieldless numeric
-enums containing only owner-identity/generation/index tags; no public scalar
-contains an owner pointer or address. Every operation receives the valid opaque
-owner separately and validates identity first, then generation/index, before
-indexing private storage. Copying a batch preserves the same tags.
+16 borrowed pieces. Non-empty zero-copy slices are scoped to `processBatch`;
+issuing one prevents subsequent retention of that slot. All byte ranges are
+bounds/overflow checked. A batch holds at most 64 slots, preserves strictly
+increasing receive order, and permits empty or partial lengths. Public batch,
+view, and adapter-output handles are fieldless numeric enums containing only
+owner-identity/generation/index tags; no public scalar contains an owner pointer
+or address. Every operation receives the valid opaque owner separately and
+validates identity first, then generation/index and access state, before
+indexing private storage. `PacketBatch.outputPacket` returns an opaque
+`OutputPacket`, never a pointer to owner-held slot storage. Copying a handle
+preserves the same tags and checks.
 
 Token transitions are:
 
@@ -59,13 +67,17 @@ construction returns `OwnerIdentityExhausted` without wrap or reuse. `begin`
 copies bounded slot metadata but never payload and advances an owner-local
 generation that is never reset or reused. `PacketBatch.invalidate` ends the
 shared borrow for every batch copy. Stale batch operations return
-`BatchReleased`; every view/iterator operation returns `StaleView`, including
-after a handle escapes a processing-call frame. The owner, tracker, and payload
-must outlive all derived handles; owner destruction is allowed only after they
-are unreachable. Zero, random, modified, and cross-owner public scalar tags are
-safe inputs when paired with a valid owner and return bounded
-release/stale/bounds errors. Forging the opaque owner pointer or backing payload
-pointers remains outside the safe contract.
+`BatchReleased`; every view/iterator/output-handle operation returns
+`StaleView`, including after a handle escapes a processing-call frame. Raw
+slices and adapter tokens are not revocable values and must not escape
+`processBatch`; the owner records when they are issued and rejects a later
+retention transfer with `OutstandingBorrow`. `PacketView.read` copies and does
+not create this barrier. The owner, tracker, and payload must outlive all
+derived handles; owner destruction is allowed only after they are unreachable.
+Zero, random, modified, and cross-owner public scalar tags are safe inputs when
+paired with a valid owner and return bounded release/stale/bounds errors.
+Forging the opaque owner pointer or backing payload pointers remains outside
+the safe contract.
 
 ## Concurrency
 
@@ -90,10 +102,11 @@ allocators, not a manually incremented packet counter.
 
 Malformed totals, oversized segment sets, descriptor/range arithmetic
 overflow, range bounds, stale borrows, invalid transitions, double completion,
-and missing completion are distinct bounded errors. Forged handle tags and
-adversarial iterator numeric state are revalidated on every operation.
-Iterator progress is recomputed from descriptors with checked arithmetic.
-Rejected transitions leave ownership unchanged.
+missing completion, and retention attempted after issuing nonrevocable raw
+authority are distinct bounded errors. Forged handle tags and adversarial
+iterator numeric state are revalidated on every operation. Iterator progress
+is recomputed from descriptors with checked arithmetic. Rejected transitions
+leave ownership and access state unchanged.
 
 ## Security boundary
 
@@ -132,10 +145,9 @@ every size through the configured maximum.
 
 ## Alternatives and evolution
 
-M2 adds selection, parsing, dispositions, mutation, and retention-lease pool
-semantics without exposing the internal segment array. A fixed word array may
-replace later selection storage before public stabilization.
+M2 uses the accepted opaque one-word selection baseline. A fixed word array may
+replace it before public stabilization if a larger batch bound is accepted.
 
 ## Open questions
 
-None for the M1 read-only surface.
+None for the M1 read-only or M2 packet-processing surface.

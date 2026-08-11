@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
-# Canonical implementation coverage map, currently scoped through M1.
-# Future-milestone IDs are added only when their implementation evidence exists;
+# Canonical implementation coverage map, currently scoped through M2.
+# Later-milestone IDs are added only when their implementation evidence exists;
 # the normative catalogue remains source-requirements/requirements.yaml.
 - id: FR-PKT-001
   design: docs/internals/modules/packet.md
@@ -57,6 +57,10 @@
     - src/io/synthetic/root.zig
   tests:
     - "FR-PKT-011 INV-PKT-001 exact token completion detects double and missing completion"
+    - "FR-PKT-011 FR-PKT-012 AC-010 INV-PKT-001 retention revokes all batch aliases through completion and generation reuse"
+    - "FR-PKT-011 FR-PKT-012 AC-010 INV-PKT-001 raw slice and token escapes reject retention atomically"
+    - "FR-PKT-011 FR-PKT-012 AC-010 retention exhaustion preserves every batch capability atomically"
+    - "FR-PKT-011 FR-PKT-012 AC-010 retained synthetic packet rejects output through completion"
   status: passing
   since: 0.1.0-m1
 
@@ -66,6 +70,10 @@
     - src/packet/root.zig
   tests:
     - "FR-PKT-002 FR-PKT-003 FR-PKT-012 INV-PKT-002 pointer-free owner-bound handles resist escape reuse forging and iterator mutation"
+    - "FR-PKT-011 FR-PKT-012 AC-010 INV-PKT-001 retention revokes all batch aliases through completion and generation reuse"
+    - "FR-PKT-011 FR-PKT-012 AC-010 INV-PKT-001 raw slice and token escapes reject retention atomically"
+    - "FR-PKT-011 FR-PKT-012 AC-010 retention exhaustion preserves every batch capability atomically"
+    - "FR-PKT-011 FR-PKT-012 AC-010 retained synthetic packet rejects output through completion"
   status: passing
   since: 0.1.0-m1
 
@@ -91,6 +99,8 @@
     - "INV-PKT-001 synthetic receive failures are transactional and queue outcomes match the reference states"
     - "INV-PKT-001 independent queue model exhausts backpressure failure delayed completion and shutdown sequences"
     - "FR-TEST-002 INV-PKT-001 PERF-CORE-004 linear and segmented packet sizes traverse unchanged with borrowed identity and no packet-path allocation or payload copy"
+    - "FR-PKT-011 FR-PKT-012 AC-010 INV-PKT-001 retention revokes all batch aliases through completion and generation reuse"
+    - "FR-PKT-011 FR-PKT-012 AC-010 INV-PKT-001 raw slice and token escapes reject retention atomically"
   status: passing
   since: 0.1.0-m1
 
@@ -115,3 +125,129 @@
     - "PERF-CORE-004 allocation and abstraction-copy negative controls trip the packet-path guard"
   status: passing-synthetic-regression-only
   since: 0.1.0-m1
+
+- id: FR-PKT-005
+  design: docs/internals/modules/m2-packet-processing.md
+  code:
+    - src/packet/root.zig
+  tests:
+    - "FR-PKT-005 FR-PKT-010 FR-PKT-013 AC-002 INV-PKT-003 INV-PKT-004 terminal dispositions are atomic and group in receive order"
+  status: passing
+  since: 0.2.0-m2
+
+- id: FR-PKT-007
+  design: docs/internals/modules/m2-packet-processing.md
+  code:
+    - src/packet/root.zig
+  tests:
+    - "FR-PKT-007 FR-PKT-008 FR-TEST-003 INV-PKT-005 structured mutation crosses segments and finalizes checksums"
+  status: passing
+  since: 0.2.0-m2
+
+- id: FR-PKT-008
+  design: docs/internals/modules/m2-packet-processing.md
+  code:
+    - src/packet/root.zig
+  tests:
+    - "FR-PKT-007 FR-PKT-008 FR-TEST-003 INV-PKT-005 structured mutation crosses segments and finalizes checksums"
+  status: passing
+  since: 0.2.0-m2
+
+- id: FR-PKT-009
+  design: docs/internals/modules/m2-packet-processing.md
+  code:
+    - src/packet/root.zig
+  tests:
+    - "FR-PKT-009 M2 raw mutation requires an explicit unsafe invalidation declaration"
+  status: passing
+  since: 0.2.0-m2
+
+- id: FR-PKT-010
+  design: docs/internals/modules/m2-packet-processing.md
+  code:
+    - src/packet/root.zig
+    - src/testing/root.zig
+  tests:
+    - "FR-PKT-010 M2 selection matches a u64 oracle with bounded seeded failure traces"
+    - "FR-PKT-010 FR-PKT-011 M2 seeded reference model covers every disposition and token outcome"
+    - "FR-PKT-005 FR-PKT-010 FR-PKT-013 AC-002 INV-PKT-003 INV-PKT-004 terminal dispositions are atomic and group in receive order"
+  status: passing
+  since: 0.2.0-m2
+
+- id: FR-PKT-013
+  design: docs/internals/modules/m2-packet-processing.md
+  code:
+    - src/packet/root.zig
+  tests:
+    - "FR-PKT-005 FR-PKT-010 FR-PKT-013 AC-002 INV-PKT-003 INV-PKT-004 terminal dispositions are atomic and group in receive order"
+  status: passing
+  since: 0.2.0-m2
+
+- id: FR-TEST-003
+  design: docs/user/m2-packet-processing.md
+  code:
+    - src/packet/root.zig
+    - src/io/synthetic/root.zig
+  tests:
+    - "FR-PKT-007 FR-PKT-008 FR-TEST-003 INV-PKT-005 structured mutation crosses segments and finalizes checksums"
+    - "FR-TEST-003 M2 synthetic output submits the current owner-held resized slot"
+  status: passing
+  since: 0.2.0-m2
+
+- id: INV-PKT-003
+  design: docs/internals/modules/m2-packet-processing.md
+  code:
+    - src/packet/root.zig
+  tests:
+    - "FR-PKT-005 FR-PKT-010 FR-PKT-013 AC-002 INV-PKT-003 INV-PKT-004 terminal dispositions are atomic and group in receive order"
+  status: passing
+  since: 0.2.0-m2
+
+- id: INV-PKT-004
+  design: docs/internals/modules/m2-packet-processing.md
+  code:
+    - src/packet/root.zig
+  tests:
+    - "FR-PKT-005 FR-PKT-010 FR-PKT-013 AC-002 INV-PKT-003 INV-PKT-004 terminal dispositions are atomic and group in receive order"
+  status: passing
+  since: 0.2.0-m2
+
+- id: INV-PKT-005
+  design: docs/internals/modules/m2-packet-processing.md
+  code:
+    - src/packet/root.zig
+  tests:
+    - "FR-PKT-007 FR-PKT-008 FR-TEST-003 INV-PKT-005 structured mutation crosses segments and finalizes checksums"
+  status: passing
+  since: 0.2.0-m2
+
+- id: AC-001
+  design: docs/user/m2-packet-processing.md
+  code:
+    - src/io/synthetic/root.zig
+  tests:
+    - "FR-PKT-004 partial receive, scripted failure, backpressure, and delayed completion are deterministic"
+  status: passing
+  since: 0.2.0-m2
+
+- id: AC-002
+  design: docs/user/m2-packet-processing.md
+  code:
+    - src/packet/root.zig
+  tests:
+    - "FR-PKT-005 FR-PKT-010 FR-PKT-013 AC-002 INV-PKT-003 INV-PKT-004 terminal dispositions are atomic and group in receive order"
+  status: passing
+  since: 0.2.0-m2
+
+- id: AC-010
+  design: docs/user/m2-packet-processing.md
+  code:
+    - src/packet/root.zig
+  tests:
+    - "FR-PKT-011 FR-PKT-012 AC-010 INV-PKT-001 retention capacity provenance completion and leaks are exact"
+    - "FR-PKT-011 FR-PKT-012 AC-010 INV-PKT-001 retention revokes all batch aliases through completion and generation reuse"
+    - "FR-PKT-011 FR-PKT-012 AC-010 INV-PKT-001 raw slice and token escapes reject retention atomically"
+    - "FR-PKT-011 FR-PKT-012 AC-010 retention exhaustion preserves every batch capability atomically"
+    - "FR-PKT-011 FR-PKT-012 AC-010 retained synthetic packet rejects output through completion"
+  status: passing
+  since: 0.2.0-m2

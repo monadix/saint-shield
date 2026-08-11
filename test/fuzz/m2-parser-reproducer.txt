@@ -1,0 +1,5 @@
+Target: parser
+Seed source: test/fuzz/m2-parser-corpus
+Timeout: 500 ms per execution; 2 s bounded smoke campaign
+Reproduce: sh tools/m2/fuzz-smoke.sh parser --reproduce RAW_INPUT
+On failure the runner prints the AFL seed/path and an afl-tmin minimized hex trace.

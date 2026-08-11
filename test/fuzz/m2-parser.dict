@@ -1,0 +1,9 @@
+# SPDX-License-Identifier: Apache-2.0
+ether_ipv4="\x08\x00"
+ether_ipv6="\x86\xdd"
+vlan="\x81\x00"
+ipv4="\x45"
+ipv6="\x60"
+tcp="\x06"
+udp="\x11"
+fragment="\x2c"

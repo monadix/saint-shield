@@ -1,0 +1,5 @@
+Target: finalizer
+Seed source: test/fuzz/m2-finalizer-corpus
+Timeout: 500 ms per execution; 2 s bounded smoke campaign
+Reproduce: sh tools/m2/fuzz-smoke.sh finalizer --reproduce RAW_INPUT
+On failure the runner prints the AFL seed/path and an afl-tmin minimized hex trace.

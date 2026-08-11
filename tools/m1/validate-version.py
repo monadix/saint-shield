@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
-"""Require one exact M1 version across package, API, and coverage claims."""
+"""Preserve exact M1 coverage provenance under the current package version."""
 
 from pathlib import Path
 import re
 
 
 ROOT = Path(__file__).resolve().parents[2]
-EXPECTED = "0.1.0-m1"
+EXPECTED_M1 = "0.1.0-m1"
+SUPPORTED_CURRENT = {"0.1.0-m1", "0.2.0-m2"}
 
 
 def one_match(path: Path, pattern: str, label: str) -> str:
@@ -38,16 +39,17 @@ def main() -> None:
     )
     if not coverage_versions:
         raise SystemExit("coverage map has no since versions")
-    versions = {package_version, api_version, *coverage_versions}
-    if versions != {EXPECTED}:
+    if package_version != api_version or package_version not in SUPPORTED_CURRENT:
         raise SystemExit(
-            "M1 version mismatch: expected "
-            f"{EXPECTED}; package={package_version}, api={api_version}, "
-            f"coverage={sorted(set(coverage_versions))}"
+            "current package/API mismatch while checking M1 compatibility: "
+            f"package={package_version}, api={api_version}"
         )
+    m1_claims = [version for version in coverage_versions if version == EXPECTED_M1]
+    if len(m1_claims) != 11:
+        raise SystemExit(f"M1 must preserve 11 {EXPECTED_M1} claims; found {len(m1_claims)}")
     print(
-        f"M1 version consistency passed: {EXPECTED} across package, API, "
-        f"and {len(coverage_versions)} coverage claims"
+        f"M1 compatibility version check passed: {len(m1_claims)} preserved "
+        f"{EXPECTED_M1} claims under current {package_version}"
     )
 
 

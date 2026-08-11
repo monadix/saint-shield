@@ -1,0 +1,349 @@
+{
+  "schema": "saint-shield-bench/v1",
+  "run_id": "m2-parser-disposition-cycles",
+  "timestamp_utc": "2026-08-11T19:10:22.425196+00:00",
+  "git_commit": "05eb395c91902e41961f7164c18d9a50a5f37d7f",
+  "dirty": false,
+  "build": {
+    "zig": "0.16.0",
+    "mode": "ReleaseFast",
+    "target": "x86_64-linux.6.18.38...6.18.38-gnu.2.42",
+    "features": [
+      "synthetic",
+      "rdtscp",
+      "parser",
+      "dispositions"
+    ]
+  },
+  "environment": "bench/examples/environment.m0v.json",
+  "backend": {
+    "name": "synthetic",
+    "version": "m2",
+    "mode": "host-local"
+  },
+  "application": {
+    "pipeline": [],
+    "generation_digest": "77510cc2dcffdc1ab2b5b21e8931d01c59db7eda9c90197610b1f38b93a6a5d9",
+    "batch_max": 64,
+    "resources": {
+      "parser_cache": "preallocated",
+      "selection_words": 1,
+      "source_tree": "1e16b2e823b6bfb86afb0bc33ac10fef4be4675c",
+      "environment_sha256": "91d14b49e7b950a6a2b4ead0d42da7cb28d00fa47a7c0a2d1f3ee3f0d659b322",
+      "fixture_sha256": "77510cc2dcffdc1ab2b5b21e8931d01c59db7eda9c90197610b1f38b93a6a5d9",
+      "sources": [
+        {
+          "path": "bench/micro/m2_parser_disposition.zig",
+          "sha256": "86f60256c2a5278772ac0db8be2110300b640039bb5c114393f51bc319d8df5a"
+        },
+        {
+          "path": "bench/micro/cycle_counter.c",
+          "sha256": "a13a13842f85691bffc2b0a685fc87bfce71938c4ba725aba549edf093dafaca"
+        },
+        {
+          "path": "tools/m2/benchmark-evidence.py",
+          "sha256": "fec89bc24222f111cc22eca5883e245332eadb3cdfb6f95fff7f1e50f0d5dee5"
+        },
+        {
+          "path": "build.zig",
+          "sha256": "a3329801d799f097e3ae92348f2f9ecc69940f86cd8166c46a18de23183f8579"
+        }
+      ],
+      "raw_output_sha256": "0466ba073ce43de95f4c3cf30fa7e1f044a27d527907351bb7ef32a3a2dba3c6",
+      "host_observation": {
+        "cpu_model": "Intel(R) Xeon(R) CPU E5-2666 v3 @ 2.90GHz",
+        "kernel": "6.18.38",
+        "machine": "x86_64",
+        "ambient": "uncontrolled host-local run"
+      }
+    }
+  },
+  "traffic": {
+    "generator": "deterministic-in-process-fixture",
+    "frame_profile": "Ethernet-IPv4-UDP-46-byte",
+    "protocol": "IPv4-UDP",
+    "flows": 1,
+    "offered_pps": 0,
+    "duration_s": 19.387029147001158
+  },
+  "methodology": {
+    "preflight": "ReleaseFast native serialized RDTSCP; iteration warmup; five repeated measurement windows per batch",
+    "warmup_seconds": 0,
+    "independent_run": 1,
+    "independent_runs": 1,
+    "load_order": "batch-1-4-8-16-32-64; warmup then runs-1-through-5",
+    "zero_loss_search": "not-applicable",
+    "timestamp_method": "serialized-rdtscp",
+    "timestamp_resolution_ns": 0,
+    "generator_headroom_ratio": 0,
+    "adapted_standards": [],
+    "rejection_checks": [
+      "schema-valid",
+      "clean-commit-tree-binding",
+      "source-environment-fixture-hashes",
+      "all-required-batch-sizes",
+      "warmup-and-five-positive-raw-samples",
+      "raw-output-hash",
+      "synthetic-regression-only",
+      "not-production-capacity"
+    ]
+  },
+  "result": {
+    "rx_pps": 0,
+    "tx_pps": 0,
+    "loss_packets": 0,
+    "latency_ns": {
+      "p50": 0,
+      "p99": 0,
+      "p999": 0,
+      "max": 0
+    },
+    "cpu": {
+      "counter": "RDTSCP",
+      "serialization": "LFENCE"
+    },
+    "perf": {
+      "iterations_per_batch": 2000,
+      "warmup_iterations_per_batch": 200,
+      "repetitions_per_batch": 5,
+      "raw_lines": [
+        "settings iterations=2000 warmup_iterations=200 repetitions=5 claim=synthetic-regression-not-capacity",
+        "batch=1 run=1 parser_cycles_per_packet=4354.551000 noop_disposition_cycles_per_packet=39715.671500",
+        "batch=1 run=2 parser_cycles_per_packet=3596.994000 noop_disposition_cycles_per_packet=37831.808000",
+        "batch=1 run=3 parser_cycles_per_packet=3600.840000 noop_disposition_cycles_per_packet=41982.692000",
+        "batch=1 run=4 parser_cycles_per_packet=3593.016000 noop_disposition_cycles_per_packet=37869.356000",
+        "batch=1 run=5 parser_cycles_per_packet=3605.574000 noop_disposition_cycles_per_packet=37839.968000",
+        "batch=4 run=1 parser_cycles_per_packet=1202.642500 noop_disposition_cycles_per_packet=12220.884500",
+        "batch=4 run=2 parser_cycles_per_packet=2296.428000 noop_disposition_cycles_per_packet=15246.366500",
+        "batch=4 run=3 parser_cycles_per_packet=1851.489750 noop_disposition_cycles_per_packet=9958.677500",
+        "batch=4 run=4 parser_cycles_per_packet=1204.706000 noop_disposition_cycles_per_packet=9288.736875",
+        "batch=4 run=5 parser_cycles_per_packet=1023.563250 noop_disposition_cycles_per_packet=8568.390750",
+        "batch=8 run=1 parser_cycles_per_packet=747.515688 noop_disposition_cycles_per_packet=4402.390938",
+        "batch=8 run=2 parser_cycles_per_packet=773.245063 noop_disposition_cycles_per_packet=4393.021313",
+        "batch=8 run=3 parser_cycles_per_packet=749.048813 noop_disposition_cycles_per_packet=4397.380813",
+        "batch=8 run=4 parser_cycles_per_packet=758.840063 noop_disposition_cycles_per_packet=4436.373375",
+        "batch=8 run=5 parser_cycles_per_packet=770.808688 noop_disposition_cycles_per_packet=4421.535000",
+        "batch=16 run=1 parser_cycles_per_packet=682.048750 noop_disposition_cycles_per_packet=2320.101531",
+        "batch=16 run=2 parser_cycles_per_packet=688.627313 noop_disposition_cycles_per_packet=2316.076250",
+        "batch=16 run=3 parser_cycles_per_packet=690.789406 noop_disposition_cycles_per_packet=2336.436406",
+        "batch=16 run=4 parser_cycles_per_packet=695.204156 noop_disposition_cycles_per_packet=2288.510750",
+        "batch=16 run=5 parser_cycles_per_packet=715.617469 noop_disposition_cycles_per_packet=2284.468938",
+        "batch=32 run=1 parser_cycles_per_packet=593.516922 noop_disposition_cycles_per_packet=1247.613703",
+        "batch=32 run=2 parser_cycles_per_packet=598.298719 noop_disposition_cycles_per_packet=1264.958719",
+        "batch=32 run=3 parser_cycles_per_packet=589.895359 noop_disposition_cycles_per_packet=1262.275344",
+        "batch=32 run=4 parser_cycles_per_packet=613.682438 noop_disposition_cycles_per_packet=1274.404313",
+        "batch=32 run=5 parser_cycles_per_packet=587.384922 noop_disposition_cycles_per_packet=1265.316891",
+        "batch=64 run=1 parser_cycles_per_packet=564.409695 noop_disposition_cycles_per_packet=785.274133",
+        "batch=64 run=2 parser_cycles_per_packet=557.647063 noop_disposition_cycles_per_packet=809.949297",
+        "batch=64 run=3 parser_cycles_per_packet=559.873438 noop_disposition_cycles_per_packet=799.684883",
+        "batch=64 run=4 parser_cycles_per_packet=567.564805 noop_disposition_cycles_per_packet=800.081109",
+        "batch=64 run=5 parser_cycles_per_packet=574.206063 noop_disposition_cycles_per_packet=793.453414"
+      ],
+      "batch_results": [
+        {
+          "batch_size": 1,
+          "runs": [
+            {
+              "run": 1,
+              "parser_cycles_per_packet": 4354.551,
+              "noop_disposition_cycles_per_packet": 39715.6715
+            },
+            {
+              "run": 2,
+              "parser_cycles_per_packet": 3596.994,
+              "noop_disposition_cycles_per_packet": 37831.808
+            },
+            {
+              "run": 3,
+              "parser_cycles_per_packet": 3600.84,
+              "noop_disposition_cycles_per_packet": 41982.692
+            },
+            {
+              "run": 4,
+              "parser_cycles_per_packet": 3593.016,
+              "noop_disposition_cycles_per_packet": 37869.356
+            },
+            {
+              "run": 5,
+              "parser_cycles_per_packet": 3605.574,
+              "noop_disposition_cycles_per_packet": 37839.968
+            }
+          ],
+          "parser_cycles_per_packet_median": 3600.84,
+          "noop_disposition_cycles_per_packet_median": 37869.356
+        },
+        {
+          "batch_size": 4,
+          "runs": [
+            {
+              "run": 1,
+              "parser_cycles_per_packet": 1202.6425,
+              "noop_disposition_cycles_per_packet": 12220.8845
+            },
+            {
+              "run": 2,
+              "parser_cycles_per_packet": 2296.428,
+              "noop_disposition_cycles_per_packet": 15246.3665
+            },
+            {
+              "run": 3,
+              "parser_cycles_per_packet": 1851.48975,
+              "noop_disposition_cycles_per_packet": 9958.6775
+            },
+            {
+              "run": 4,
+              "parser_cycles_per_packet": 1204.706,
+              "noop_disposition_cycles_per_packet": 9288.736875
+            },
+            {
+              "run": 5,
+              "parser_cycles_per_packet": 1023.56325,
+              "noop_disposition_cycles_per_packet": 8568.39075
+            }
+          ],
+          "parser_cycles_per_packet_median": 1204.706,
+          "noop_disposition_cycles_per_packet_median": 9958.6775
+        },
+        {
+          "batch_size": 8,
+          "runs": [
+            {
+              "run": 1,
+              "parser_cycles_per_packet": 747.515688,
+              "noop_disposition_cycles_per_packet": 4402.390938
+            },
+            {
+              "run": 2,
+              "parser_cycles_per_packet": 773.245063,
+              "noop_disposition_cycles_per_packet": 4393.021313
+            },
+            {
+              "run": 3,
+              "parser_cycles_per_packet": 749.048813,
+              "noop_disposition_cycles_per_packet": 4397.380813
+            },
+            {
+              "run": 4,
+              "parser_cycles_per_packet": 758.840063,
+              "noop_disposition_cycles_per_packet": 4436.373375
+            },
+            {
+              "run": 5,
+              "parser_cycles_per_packet": 770.808688,
+              "noop_disposition_cycles_per_packet": 4421.535
+            }
+          ],
+          "parser_cycles_per_packet_median": 758.840063,
+          "noop_disposition_cycles_per_packet_median": 4402.390938
+        },
+        {
+          "batch_size": 16,
+          "runs": [
+            {
+              "run": 1,
+              "parser_cycles_per_packet": 682.04875,
+              "noop_disposition_cycles_per_packet": 2320.101531
+            },
+            {
+              "run": 2,
+              "parser_cycles_per_packet": 688.627313,
+              "noop_disposition_cycles_per_packet": 2316.07625
+            },
+            {
+              "run": 3,
+              "parser_cycles_per_packet": 690.789406,
+              "noop_disposition_cycles_per_packet": 2336.436406
+            },
+            {
+              "run": 4,
+              "parser_cycles_per_packet": 695.204156,
+              "noop_disposition_cycles_per_packet": 2288.51075
+            },
+            {
+              "run": 5,
+              "parser_cycles_per_packet": 715.617469,
+              "noop_disposition_cycles_per_packet": 2284.468938
+            }
+          ],
+          "parser_cycles_per_packet_median": 690.789406,
+          "noop_disposition_cycles_per_packet_median": 2316.07625
+        },
+        {
+          "batch_size": 32,
+          "runs": [
+            {
+              "run": 1,
+              "parser_cycles_per_packet": 593.516922,
+              "noop_disposition_cycles_per_packet": 1247.613703
+            },
+            {
+              "run": 2,
+              "parser_cycles_per_packet": 598.298719,
+              "noop_disposition_cycles_per_packet": 1264.958719
+            },
+            {
+              "run": 3,
+              "parser_cycles_per_packet": 589.895359,
+              "noop_disposition_cycles_per_packet": 1262.275344
+            },
+            {
+              "run": 4,
+              "parser_cycles_per_packet": 613.682438,
+              "noop_disposition_cycles_per_packet": 1274.404313
+            },
+            {
+              "run": 5,
+              "parser_cycles_per_packet": 587.384922,
+              "noop_disposition_cycles_per_packet": 1265.316891
+            }
+          ],
+          "parser_cycles_per_packet_median": 593.516922,
+          "noop_disposition_cycles_per_packet_median": 1264.958719
+        },
+        {
+          "batch_size": 64,
+          "runs": [
+            {
+              "run": 1,
+              "parser_cycles_per_packet": 564.409695,
+              "noop_disposition_cycles_per_packet": 785.274133
+            },
+            {
+              "run": 2,
+              "parser_cycles_per_packet": 557.647063,
+              "noop_disposition_cycles_per_packet": 809.949297
+            },
+            {
+              "run": 3,
+              "parser_cycles_per_packet": 559.873438,
+              "noop_disposition_cycles_per_packet": 799.684883
+            },
+            {
+              "run": 4,
+              "parser_cycles_per_packet": 567.564805,
+              "noop_disposition_cycles_per_packet": 800.081109
+            },
+            {
+              "run": 5,
+              "parser_cycles_per_packet": 574.206063,
+              "noop_disposition_cycles_per_packet": 793.453414
+            }
+          ],
+          "parser_cycles_per_packet_median": 564.409695,
+          "noop_disposition_cycles_per_packet_median": 799.684883
+        }
+      ]
+    },
+    "memory_bytes": {
+      "hot_path_allocations": 0
+    }
+  },
+  "valid": true,
+  "invalid_reason": null,
+  "raw_files": [
+    "bench/micro/m2_parser_disposition.zig",
+    "bench/micro/cycle_counter.c",
+    "tools/m2/benchmark-evidence.py",
+    "build.zig"
+  ]
+}

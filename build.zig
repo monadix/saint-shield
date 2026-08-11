@@ -28,7 +28,7 @@ pub fn build(b: *std.Build) void {
         }),
     });
     const run_root_tests = b.addRunArtifact(root_tests);
-    const test_step = b.step("test", "Run unit and M0-V scaffold tests");
+    const test_step = b.step("test", "Run cumulative packet and foundation tests");
     test_step.dependOn(&run_root_tests.step);
 
     const example_module = b.createModule(.{
@@ -80,6 +80,37 @@ pub fn build(b: *std.Build) void {
         "Run M1 synthetic zero-copy regression evidence (not capacity)",
     );
     m1_bench_step.dependOn(&run_m1_bench.step);
+
+    const m2_bench_module = b.createModule(.{
+        .root_source_file = b.path("bench/micro/m2_parser_disposition.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    m2_bench_module.addImport("saint_shield", saint_module);
+    const m2_bench = b.addExecutable(.{
+        .name = "m2-parser-disposition-bench",
+        .root_module = m2_bench_module,
+    });
+    m2_bench.root_module.addCSourceFile(.{
+        .file = b.path("bench/micro/cycle_counter.c"),
+        .flags = &.{ "-std=c11", "-Wall", "-Wextra", "-Werror" },
+    });
+    m2_bench.root_module.link_libc = true;
+    const run_m2_bench = b.addRunArtifact(m2_bench);
+    const m2_bench_raw_step = b.step(
+        "m2-bench-raw",
+        "Emit repeated M2 parser/disposition cycle samples (not capacity)",
+    );
+    m2_bench_raw_step.dependOn(&run_m2_bench.step);
+    const validate_m2_bench = b.addSystemCommand(&.{
+        "python3", "tools/m2/benchmark-evidence.py",
+    });
+    const m2_bench_step = b.step(
+        "m2-bench",
+        "Run M2 cycle samples and validate retained source-bound evidence",
+    );
+    m2_bench_step.dependOn(&run_m2_bench.step);
+    m2_bench_step.dependOn(&validate_m2_bench.step);
 
     const docs = library.getEmittedDocs();
     const install_docs = b.addInstallDirectory(.{
@@ -139,11 +170,32 @@ pub fn build(b: *std.Build) void {
     addCommandStep(b, "version-consistency", "Validate the exact M1 package/API/coverage version", &.{
         "python3", "tools/m1/validate-version.py",
     });
+    addCommandStep(b, "m2-coverage", "Validate the cumulative M2 requirement and evidence map", &.{
+        "python3", "tools/m2/validate-coverage.py",
+    });
+    addCommandStep(b, "m2-version-consistency", "Validate M2 version and preserved M1 provenance", &.{
+        "python3", "tools/m2/validate-version.py",
+    });
+    addCommandStep(b, "m2-scapy-differential", "Run Scapy 2.7 packet differential checks", &.{
+        "python3", "tools/m2/scapy-differential.py",
+    });
+    addCommandStep(b, "m2-parser-fuzz-smoke", "Run bounded M2 parser AFL++ smoke", &.{
+        "sh", "tools/m2/fuzz-smoke.sh", "parser",
+    });
+    addCommandStep(b, "m2-finalizer-fuzz-smoke", "Run bounded M2 finalizer AFL++ smoke", &.{
+        "sh", "tools/m2/fuzz-smoke.sh", "finalizer",
+    });
+    addCommandStep(b, "m2-fuzz-evidence", "Validate retained source-bound M2 fuzz summaries", &.{
+        "python3", "tools/m2/validate-fuzz-evidence.py",
+    });
     addCommandStep(b, "ci-m0-v", "Run the independently invocable M0-V CI gate", &.{
         "sh", "tools/m0/ci.sh",
     });
-    addCommandStep(b, "ci", "Run the complete cumulative hardware-free M1 CI gate", &.{
+    addCommandStep(b, "ci-m1", "Run the independently invocable cumulative M1 CI gate", &.{
         "sh", "tools/m1/ci.sh",
+    });
+    addCommandStep(b, "ci", "Run the complete cumulative hardware-free M2 CI gate", &.{
+        "sh", "tools/m2/ci.sh",
     });
 }
 

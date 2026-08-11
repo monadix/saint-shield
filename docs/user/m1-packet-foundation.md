@@ -114,9 +114,9 @@ zig build coverage
 zig build coverage-self-test
 zig build version-consistency
 zig build -Doptimize=ReleaseFast m1-bench
-zig build ci
+zig build ci-m1
 ```
 
-The complete cumulative milestone gate is recorded in
+The independently invocable cumulative M1 gate is recorded in
 `evidence/m1/VERIFICATION.md`. Synthetic results are regression evidence only,
 not production capacity claims.

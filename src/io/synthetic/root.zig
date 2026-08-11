@@ -15,6 +15,12 @@ pub const InputConfig = struct {
     capacity: usize,
     max_packet_length: usize,
     zero_length: ZeroLengthPolicy = .reject,
+    /// Expose explicit mutable descriptors; false preserves M1 behavior.
+    mutable: bool = false,
+    /// Setup-owned bytes available before a mutable linear packet.
+    headroom: usize = 0,
+    /// Setup-owned bytes available after a mutable linear packet.
+    tailroom: usize = 0,
 };
 
 /// Receive scripting action consumed once per receive call.
@@ -47,9 +53,11 @@ pub const InputError = error{
     TokenFailure,
     DescriptorFailure,
     Bounds,
+    Overflow,
 };
 
 const Record = struct {
+    storage: []u8,
     payload: []u8,
     split_storage: [packet.max_segments - 1]usize = undefined,
     split_count: u8,
@@ -241,7 +249,7 @@ pub const InputQueue = struct {
     /// `verifyCompleted`; no payload is silently completed here.
     pub fn deinit(self: *InputQueue) void {
         for (self.records[0..self.queued]) |record|
-            self.allocator.free(record.payload);
+            self.allocator.free(record.storage);
         self.allocator.free(self.records);
         self.tracker.deinit();
         self.* = undefined;
@@ -262,12 +270,19 @@ pub const InputQueue = struct {
             previous = offset;
         }
 
-        const owned = self.allocator.dupe(u8, payload) catch return error.OutOfMemory;
+        const after_headroom = std.math.add(usize, self.config.headroom, payload.len) catch
+            return error.Overflow;
+        const storage_len = std.math.add(usize, after_headroom, self.config.tailroom) catch
+            return error.Overflow;
+        const owned = self.allocator.alloc(u8, storage_len) catch return error.OutOfMemory;
         errdefer self.allocator.free(owned);
+        const active = owned[self.config.headroom..after_headroom];
+        @memcpy(active, payload);
         const token = self.tracker.registerInput() catch return error.TokenFailure;
 
         var record = Record{
-            .payload = owned,
+            .storage = owned,
+            .payload = active,
             .split_count = @intCast(split_offsets.len),
             .token = token,
         };
@@ -352,23 +367,52 @@ pub const InputQueue = struct {
                 return error.TokenFailure;
 
             var descriptors: [packet.max_segments]packet.SegmentDescriptor = undefined;
+            var mutable_descriptors: [packet.max_segments]packet.MutableSegmentDescriptor = undefined;
             var start: usize = 0;
             for (record.split_storage[0..record.split_count], 0..) |end, segment_index| {
                 descriptors[segment_index] = .fromBytes(record.payload[start..end]);
+                const storage_start = if (segment_index == 0) 0 else self.config.headroom + start;
+                const storage_end = self.config.headroom + end;
+                mutable_descriptors[segment_index] = packet.MutableSegmentDescriptor.init(
+                    record.storage[storage_start..storage_end],
+                    if (segment_index == 0) self.config.headroom else 0,
+                    end - start,
+                    .{ .resize = record.split_count == 0 },
+                ) catch return error.DescriptorFailure;
                 start = end;
             }
             descriptors[record.split_count] = .fromBytes(record.payload[start..]);
+            const last_storage_start = if (record.split_count == 0)
+                0
+            else
+                self.config.headroom + start;
+            mutable_descriptors[record.split_count] = packet.MutableSegmentDescriptor.init(
+                record.storage[last_storage_start..],
+                if (record.split_count == 0) self.config.headroom else 0,
+                record.payload.len - start,
+                .{ .resize = record.split_count == 0 },
+            ) catch return error.DescriptorFailure;
             const descriptor_count: usize = @as(usize, record.split_count) + 1;
             const sequence = std.math.add(u64, self.receive_sequence, output_index) catch
                 return error.DescriptorFailure;
-            prepared_slots[output_index] = packet.PacketSlot.init(
-                record.token,
-                descriptors[0..descriptor_count],
-                record.payload.len,
-                sequence,
-                .{ .timestamp_ns = self.clock.now().nanoseconds },
-                &self.packet_path,
-            ) catch return error.DescriptorFailure;
+            prepared_slots[output_index] = if (self.config.mutable)
+                packet.PacketSlot.initMutable(
+                    record.token,
+                    mutable_descriptors[0..descriptor_count],
+                    record.payload.len,
+                    sequence,
+                    .{ .timestamp_ns = self.clock.now().nanoseconds },
+                    &self.packet_path,
+                ) catch return error.DescriptorFailure
+            else
+                packet.PacketSlot.init(
+                    record.token,
+                    descriptors[0..descriptor_count],
+                    record.payload.len,
+                    sequence,
+                    .{ .timestamp_ns = self.clock.now().nanoseconds },
+                    &self.packet_path,
+                ) catch return error.DescriptorFailure;
         }
 
         // INVARIANT(INV-PKT-001): every fallible descriptor, state, and
@@ -434,7 +478,7 @@ pub const SubmitAction = enum {
 };
 
 /// Bounded submit outcome. Backpressure/failure leave the token worker-owned.
-pub const SubmitError = error{ Backpressure, OutputFailure, ScriptTooLong, TokenFailure, Bounds };
+pub const SubmitError = error{ Backpressure, OutputFailure, ScriptTooLong, TokenFailure, Bounds, InvalidPacket };
 
 const Observation = struct {
     token: packet.AdapterToken,
@@ -482,8 +526,8 @@ pub const OutputQueue = struct {
         return self.script[self.script_index];
     }
 
-    /// Attempts one output transfer without allocation or payload copy.
-    pub fn submit(self: *OutputQueue, slot: *const packet.PacketSlot) SubmitError!void {
+    /// Internal transfer after the public owner-bound readiness check.
+    fn submit(self: *OutputQueue, slot: *const packet.PacketSlot) SubmitError!void {
         if (slot.instrumentation) |instrumentation|
             instrumentation.recordSubmit();
         if (self.count == self.observations.len) return error.Backpressure;
@@ -514,6 +558,55 @@ pub const OutputQueue = struct {
 
         if (action == .accept_immediate)
             token.completeOutput() catch return error.TokenFailure;
+    }
+
+    /// Transfers one checked batch output handle without retaining owner slot
+    /// pointers or bypassing generation/access validation.
+    fn submitOutputPacket(
+        self: *OutputQueue,
+        output_packet: packet.OutputPacket,
+        owner: *packet.PacketBatchOwner,
+    ) SubmitError!void {
+        output_packet.recordSubmit(owner) catch return error.InvalidPacket;
+        if (self.count == self.observations.len) return error.Backpressure;
+        const action = self.nextAction();
+        switch (action) {
+            .backpressure => return error.Backpressure,
+            .fail => return error.OutputFailure,
+            .accept_immediate, .accept_delayed => {},
+        }
+
+        const token = output_packet.adapterToken(owner) catch return error.InvalidPacket;
+        token.submitOutput() catch return error.TokenFailure;
+        errdefer token.completeOutput() catch {};
+
+        const segment_count = output_packet.segmentCount(owner) catch return error.InvalidPacket;
+        var observation = Observation{
+            .token = token,
+            .segment_count = @intCast(segment_count),
+            .total_len = output_packet.length(owner) catch return error.InvalidPacket,
+            .pending = action == .accept_delayed,
+        };
+        for (0..segment_count) |index|
+            observation.segments[index] = output_packet.adapterSegment(owner, index) catch
+                return error.InvalidPacket;
+        self.observations[self.count] = observation;
+        self.count += 1;
+
+        if (action == .accept_immediate)
+            token.completeOutput() catch return error.TokenFailure;
+    }
+
+    /// Submits one opaque checked output handle after readiness validation.
+    pub fn submitBatch(
+        self: *OutputQueue,
+        batch: packet.PacketBatch,
+        owner: *packet.PacketBatchOwner,
+        index: usize,
+    ) SubmitError!void {
+        batch.validateForOutput(owner, index) catch return error.InvalidPacket;
+        const output_packet = batch.outputPacket(owner, index) catch return error.InvalidPacket;
+        return self.submitOutputPacket(output_packet, owner);
     }
 
     /// Completes one delayed observation. Completing it twice is rejected.
@@ -776,6 +869,7 @@ fn classifySubmitError(result: SubmitError!void) QueueModelOutcome {
         error.OutputFailure => .output_failure,
         error.Bounds => .bounds,
         error.TokenFailure => .invalid_transition,
+        error.InvalidPacket => .invalid_transition,
         error.ScriptTooLong => unreachable,
     };
     return .ok;
@@ -1025,4 +1119,137 @@ test "FR-PKT-002 every possible segment split preserves packet bytes and receive
         bytes.len * count,
         input.copyCounters().explicit_read_bytes,
     );
+}
+
+test "FR-TEST-003 M2 synthetic output submits the current owner-held resized slot" {
+    var bytes = [_]u8{0} ** 46;
+    bytes[12..14].* = .{ 0x08, 0x00 };
+    bytes[14] = 0x45;
+    bytes[16..18].* = .{ 0, 32 };
+    bytes[22] = 64;
+    bytes[23] = 17;
+    bytes[26..30].* = .{ 192, 0, 2, 1 };
+    bytes[30..34].* = .{ 198, 51, 100, 2 };
+    bytes[34..36].* = .{ 0x12, 0x34 };
+    bytes[36..38].* = .{ 0x56, 0x78 };
+    bytes[38..40].* = .{ 0, 12 };
+
+    var input = try InputQueue.init(std.testing.allocator, .{
+        .capacity = 1,
+        .max_packet_length = bytes.len,
+        .mutable = true,
+        .headroom = 4,
+        .tailroom = 4,
+    }, 0);
+    defer input.deinit();
+    try input.enqueue(&bytes, &.{});
+    var slots: [1]packet.PacketSlot = undefined;
+    try std.testing.expectEqual(@as(usize, 1), try input.receive(&slots, 1));
+    const owner = try packet.PacketBatchOwner.init(std.testing.allocator);
+    defer owner.deinit();
+    const batch = try owner.begin(.{ .input_id = .init(1), .queue_id = .init(1) }, &slots);
+    const editor = try batch.editor(owner, 0);
+    try editor.append(owner, &.{ 5, 6 });
+
+    var output = try OutputQueue.init(std.testing.allocator, 1);
+    defer output.deinit();
+    try std.testing.expectError(error.InvalidPacket, output.submitBatch(batch, owner, 0));
+    try std.testing.expectEqual(packet.TokenState.worker_owned, try slots[0].adapterToken().state());
+    try editor.finalize(owner);
+    try output.submitBatch(batch, owner, 0);
+    try std.testing.expectEqual(@as(usize, 46), slots[0].length());
+    try std.testing.expectEqual(@as(usize, 48), (try output.borrowedSegment(0, 0)).len);
+    try batch.invalidate(owner);
+    try input.verifyCompleted();
+}
+
+test "M2 synthetic output rejects raw-invalid failed and stale resized packets" {
+    var bytes = [_]u8{0} ** 46;
+    bytes[12..14].* = .{ 0x08, 0x00 };
+    bytes[14] = 0x45;
+    bytes[16..18].* = .{ 0, 32 };
+    bytes[22] = 64;
+    bytes[23] = 17;
+    bytes[34..36].* = .{ 0x12, 0x34 };
+    bytes[36..38].* = .{ 0x56, 0x78 };
+    bytes[38..40].* = .{ 0, 12 };
+
+    var input = try InputQueue.init(std.testing.allocator, .{
+        .capacity = 3,
+        .max_packet_length = bytes.len,
+        .mutable = true,
+        .tailroom = 2,
+    }, 0);
+    defer input.deinit();
+    for (0..3) |_| try input.enqueue(&bytes, &.{});
+    var slots: [3]packet.PacketSlot = undefined;
+    try std.testing.expectEqual(@as(usize, 3), try input.receive(&slots, 3));
+    const owner = try packet.PacketBatchOwner.init(std.testing.allocator);
+    defer owner.deinit();
+    const batch = try owner.begin(.{ .input_id = .init(1), .queue_id = .init(1) }, &slots);
+    var output = try OutputQueue.init(std.testing.allocator, 1);
+    defer output.deinit();
+
+    const raw = try batch.unsafeRawEditorForTesting(owner, 0);
+    try std.testing.expectError(
+        error.MissingInvalidationDeclaration,
+        raw.write(owner, .{ .offset = 0, .len = 1 }, &.{0xff}, .{}),
+    );
+    try std.testing.expectError(error.InvalidPacket, output.submitBatch(batch, owner, 0));
+
+    owner.injectMutationFailure(0);
+    const failed = try batch.editor(owner, 1);
+    try std.testing.expectError(error.InjectedFailure, failed.setIpv4Ttl(owner, 31));
+    try std.testing.expectError(error.InvalidPacket, output.submitBatch(batch, owner, 1));
+    owner.injectMutationFailure(null);
+
+    const resized = try batch.editor(owner, 2);
+    try resized.append(owner, &.{ 5, 6 });
+    try std.testing.expectError(error.InvalidPacket, output.submitBatch(batch, owner, 2));
+    try resized.finalize(owner);
+    try std.testing.expectEqual(@as(usize, 46), slots[2].length());
+    try std.testing.expectEqual(
+        @as(usize, 48),
+        try (try batch.outputPacket(owner, 2)).length(owner),
+    );
+    try batch.invalidate(owner);
+    try std.testing.expectError(error.InvalidPacket, output.submitBatch(batch, owner, 2));
+
+    for (&slots) |*slot| try slot.adapterToken().returnToInput();
+    try input.verifyCompleted();
+}
+
+test "FR-PKT-011 FR-PKT-012 AC-010 retained synthetic packet rejects output through completion" {
+    const bytes = [_]u8{ 1, 2, 3 };
+    var input = try InputQueue.init(std.testing.allocator, .{
+        .capacity = 1,
+        .max_packet_length = bytes.len,
+        .mutable = true,
+    }, 0);
+    defer input.deinit();
+    try input.enqueue(&bytes, &.{});
+    var slots: [1]packet.PacketSlot = undefined;
+    try std.testing.expectEqual(@as(usize, 1), try input.receive(&slots, 1));
+
+    const owner = try packet.PacketBatchOwner.init(std.testing.allocator);
+    defer owner.deinit();
+    const batch = try owner.begin(
+        .{ .input_id = .init(1), .queue_id = .init(1) },
+        &slots,
+    );
+    const writer = try packet.DispositionWriter.init(batch, owner);
+    var pool = try packet.RetentionPool.init(std.testing.allocator, 1);
+    defer pool.deinit();
+    var output = try OutputQueue.init(std.testing.allocator, 1);
+    defer output.deinit();
+
+    const lease = try writer.retain(batch, owner, &pool, 0);
+    try std.testing.expectError(error.InvalidPacket, output.submitBatch(batch, owner, 0));
+    try std.testing.expectEqual(@as(usize, 0), output.acceptedCount());
+    try lease.complete(&pool);
+    try std.testing.expectError(error.InvalidPacket, output.submitBatch(batch, owner, 0));
+    try std.testing.expectEqual(@as(usize, 0), output.acceptedCount());
+    try pool.verifyShutdown();
+    try batch.invalidate(owner);
+    try input.verifyCompleted();
 }

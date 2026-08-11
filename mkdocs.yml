@@ -5,12 +5,15 @@ nav:
   - Home: user/index.md
   - M0-V development: user/m0-v-development.md
   - M1 packet foundation: user/m1-packet-foundation.md
+  - M2 packet processing: user/m2-packet-processing.md
+  - Migrate to 0.2 M2: user/migration-0.2.md
   - Bounded PCAP fixtures: user/pcap-fixtures.md
   - API overview: api/index.md
   - Internals:
       - M0-V foundation: internals/modules/m0-v-foundation.md
       - Foundation: internals/modules/foundation.md
       - Packet: internals/modules/packet.md
+      - M2 packet processing: internals/modules/m2-packet-processing.md
       - Processor: internals/modules/processor.md
       - Pipeline: internals/modules/pipeline.md
       - Update: internals/modules/update.md

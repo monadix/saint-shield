@@ -1,17 +1,18 @@
 # API overview
 
-Applications import `saint_shield` from `src/root.zig`. The M1 public surface
+Applications import `saint_shield` from `src/root.zig`. The M2 public surface
 provides `foundation` identifiers/budgets/time, `packet` ownership and
 segment-safe views, deterministic `io.synthetic` queues, bounded classic-PCAP
-fixtures under `io.pcap`, and reproducible seeded traces under `testing`.
+fixtures under `io.pcap`, bounded parsing, selection/dispositions,
+mutation/finalization, retention, and reproducible seeded traces under
+`testing`.
 Generated Zig documentation is a symbol index and is not the sole API guide.
 
 The core imports no DPDK type. DPDK compatibility code remains under
 `src/io/dpdk` and is compiled only by the explicit smoke command.
 
-M1 deliberately does not expose protocol parsing, mutation, dispositions,
-retention leases, native processor descriptors, or a pipeline. Those remain
-gated to M2 and M3.
+M2 deliberately does not expose native processor descriptors or a static
+pipeline. Those remain gated to M3.
 
 M1's first concrete support API is the allocation-free bounded classic-PCAP
 parser and deterministic writer under `saint_shield.io.pcap`. See the
@@ -29,3 +30,12 @@ before private storage access. Cross-owner handles are rejected without
 changing either owner. Invalidating a batch rejects every alias and iterator,
 and a later generation cannot reactivate an older handle. Destroy the owner
 only after all derived handles are unreachable.
+
+The packet-processing additions are documented in the
+[M2 guide](../user/m2-packet-processing.md). Public entry points include
+`PacketView.parse`, `PacketSelection`, `DispositionWriter`,
+`DispositionGroups.resolve`, `PacketBatch.editor`,
+`PacketBatch.unsafeRawEditorForTesting`, `PacketEditor.finalize`, and
+`RetentionPool`. Mutation-aware output validates through
+`PacketBatch.outputPacket` and submits with an opaque checked `OutputPacket`;
+the batch API does not expose a pointer to owner-held slot storage.
