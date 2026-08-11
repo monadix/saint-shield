@@ -97,6 +97,10 @@ sets, correctness/performance gates, or executable project wiring. Doubt and
 scope expansion escalate upward; the writer stops instead of self-reclassifying.
 Exactly one physical writer applies in every lane.
 
+For High/Critical Lane 3 ownership or lifetime remediations that change
+authority-return behavior, follow the mandatory pre-artifact inventory and
+review acknowledgment in `.codex/AGENT_WORKFLOW.md`.
+
 ## Delegation summary
 
 Follow `.codex/AGENT_WORKFLOW.md` as the canonical runbook for the delegation

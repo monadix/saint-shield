@@ -176,6 +176,34 @@ ones explicitly. Main also selects review perspectives and names focused
 preflight and final gate commands. Unspecified public behavior returns to the
 user.
 
+### High ownership/lifetime authority-return checkpoint
+
+When a Critical or High Lane 3 finding concerns ownership, lifetime, aliasing,
+provenance, capability, or token transfer and its remediation changes
+authority-return behavior, main names this checkpoint in the remediation
+envelope. After focused semantic tests and before regenerating any
+source-bound fuzz or benchmark artifact, the writer records an authority-return
+inventory in the existing milestone finding. The discovering reviewer (or its
+named successor) audits and acknowledges that inventory is complete. The
+checkpoint is mandatory process sequencing, not a product or milestone
+acceptance gate; it does not add commands or alter required commands, finding
+closure, post-High fresh full-diff review, or exact-tree gate authority.
+
+The inventory must identify the exact authority surface (handle, pointer,
+slice, token, iterator, descriptor, or callback); issuer boundary
+(public, processor-trusted, adapter-trusted, or internal); owner, generation,
+index, lease, and capability binding; whether raw storage or authority survives
+return; revocability; behavior after retain/transfer, completion, invalidation,
+and reuse; enforcement and failure atomicity; and adversarial evidence for
+pre-minted, newly minted, stale, and recycled paths. A non-revocable surface
+requires an already-accepted enforcement mechanism. If public behavior is
+unspecified, stop through the existing user/ADR/specification decision
+workflow. Any later corrective source change invalidates the acknowledgment
+and requires re-audit before artifact refresh. If no source-bound refresh is
+needed, audit the inventory during ordinary closure without a separate round.
+The writer records the inventory, the discovering reviewer audits it, and that
+acknowledgment never transfers closure authority.
+
 ### Lane 3 implementation
 
 1. Complete the startup checks; record lane/tier, milestone, gate, baseline,

@@ -227,6 +227,36 @@ retrospective; the old IDs remain as cross-references.
   dedicated register and fast-forward lifecycle are complete and consistent
   with the canonical workflow; and declared PROC-AUTH-003 closed.
 
+## PROC-GOV-007: Missing pre-artifact authority-return inventory
+
+- Discoverer: `process_reviewer` (successor authority: independent governance
+  reviewer)
+- Assigned implementer: `fast_implementer`
+- Severity: Medium
+- Status progression: `open` -> `addressed` (closure remains pending)
+- Affected workflow: High/Critical Lane 3 ownership and authority-return
+  remediation sequencing
+- Observed issue: repeated M2 alias/authority remediations proceeded to
+  source-bound fuzz and benchmark artifact refresh without one durable,
+  reviewer-acknowledged inventory of returned authority surfaces, issuer and
+  owner bindings, revocation, reuse behavior, and adversarial paths.
+- Bounded remediation: add a named, mandatory pre-artifact checkpoint for the
+  specified High/Critical ownership/lifetime finding class; require the writer
+  to record the complete inventory in the existing milestone finding and the
+  discovering reviewer or successor to acknowledge completeness. Invalidate
+  that acknowledgment after corrective source changes and re-audit before
+  refresh; retain ordinary closure when no source-bound refresh is needed.
+- Required focused checks: trigger/field/invalidation searches; explicit
+  non-gate and unchanged closure/post-High/exact-tree authority searches;
+  documentation/link validation; `git diff --check`; and exact authorized-path
+  diff audit.
+- Addressing evidence: this commit adds the canonical checkpoint and concise
+  AGENTS pointer in `.codex/AGENT_WORKFLOW.md` and `AGENTS.md`, and records
+  this finding as addressed without closing it. Required commands and product
+  and milestone acceptance gates remain unchanged.
+- Closure evidence: pending independent governance review and any required
+  gate verification; the writer does not close this finding.
+
 ## Non-material hygiene audit
 
 The trailing whitespace formerly recorded as `M1-GATE-002` was removed and
