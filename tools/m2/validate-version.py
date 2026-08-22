@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
-"""Require exact M2 package/API version and preserved M1 coverage provenance."""
+"""Preserve exact M1/M2 coverage provenance under a compatible package."""
 
 from pathlib import Path
 import re
 
 
 ROOT = Path(__file__).resolve().parents[2]
-EXPECTED = "0.2.0-m2"
+EXPECTED_M1 = "0.1.0-m1"
+EXPECTED_M2 = "0.2.0-m2"
+SUPPORTED_CURRENT = {EXPECTED_M2, "0.3.0-m3"}
 
 
 def one(path: Path, pattern: str) -> str:
@@ -25,14 +27,20 @@ def main() -> None:
         (ROOT / "docs/requirements/coverage.yaml").read_text(encoding="utf-8"),
         re.MULTILINE,
     )
-    if package != EXPECTED or api != EXPECTED:
-        raise SystemExit(f"expected {EXPECTED}; package={package}, api={api}")
-    if versions.count("0.1.0-m1") != 11 or versions.count(EXPECTED) != 13:
+    if package != api or package not in SUPPORTED_CURRENT:
+        raise SystemExit(
+            "current package/API mismatch while checking M2 compatibility: "
+            f"package={package}, api={api}"
+        )
+    if versions.count(EXPECTED_M1) != 11 or versions.count(EXPECTED_M2) != 13:
         raise SystemExit(
             "coverage provenance mismatch: "
-            f"m1={versions.count('0.1.0-m1')} m2={versions.count(EXPECTED)}"
+            f"m1={versions.count(EXPECTED_M1)} m2={versions.count(EXPECTED_M2)}"
         )
-    print(f"M2 version consistency passed: {EXPECTED}; M1 provenance preserved")
+    print(
+        "M2 compatibility version check passed: "
+        f"11 {EXPECTED_M1} and 13 {EXPECTED_M2} claims preserved under current {package}"
+    )
 
 
 if __name__ == "__main__":

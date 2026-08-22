@@ -6,7 +6,9 @@ nav:
   - M0-V development: user/m0-v-development.md
   - M1 packet foundation: user/m1-packet-foundation.md
   - M2 packet processing: user/m2-packet-processing.md
+  - M3 native processors and pipeline: user/m3-native-pipeline.md
   - Migrate to 0.2 M2: user/migration-0.2.md
+  - Migrate to 0.3 M3: user/migration-0.3.md
   - Bounded PCAP fixtures: user/pcap-fixtures.md
   - API overview: api/index.md
   - Internals:

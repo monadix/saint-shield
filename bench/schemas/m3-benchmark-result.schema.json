@@ -1,0 +1,144 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Saint Shield M3 static-pipeline benchmark result v1",
+  "allOf": [
+    {"$ref": "./benchmark-result.schema.json"},
+    {
+      "type": "object",
+      "properties": {
+        "run_id": {"const": "m3-static-pipeline-dispatch"},
+        "dirty": {"const": false},
+        "backend": {
+          "properties": {
+            "name": {"const": "synthetic"},
+            "version": {"const": "m3"},
+            "mode": {"const": "host-local"}
+          }
+        },
+        "application": {
+          "properties": {
+            "generation_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+            "resources": {
+              "type": "object",
+              "required": ["source_commit", "source_tree", "environment_sha256", "raw_output_sha256", "raw_output", "sources", "host_observation"],
+              "properties": {
+                "source_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+                "source_tree": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+                "environment_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+                "raw_output_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+                "raw_output": {"type": "string", "minLength": 1},
+                "sources": {
+                  "type": "array",
+                  "minItems": 9,
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["path", "sha256"],
+                    "properties": {
+                      "path": {"type": "string", "pattern": "^[a-zA-Z0-9._/-]+$"},
+                      "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+                    }
+                  }
+                },
+                "host_observation": {"type": "object"}
+              }
+            }
+          }
+        },
+        "methodology": {
+          "properties": {
+            "independent_run": {"const": 7},
+            "independent_runs": {"type": "integer", "minimum": 7},
+            "rejection_checks": {"contains": {"const": "seven-independent-warmed-launches"}}
+          }
+        },
+        "result": {
+          "properties": {
+            "perf": {
+              "type": "object",
+              "required": ["warmup_iterations", "measurement_iterations", "samples_per_run", "samples_per_variant", "independent_runs", "run_summaries", "batch_results", "metric_recomputation", "diagnostic_controls"],
+              "properties": {
+                "warmup_iterations": {"type": "integer", "minimum": 1},
+                "measurement_iterations": {"type": "integer", "minimum": 1},
+                "samples_per_run": {"type": "integer", "minimum": 1},
+                "samples_per_variant": {"type": "integer", "minimum": 35},
+                "independent_runs": {"type": "integer", "minimum": 7},
+                "metric_recomputation": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["cycles_per_packet_abs_tolerance", "ns_per_packet_abs_tolerance", "packet_rate_abs_tolerance", "packet_count"],
+                  "properties": {
+                    "cycles_per_packet_abs_tolerance": {"const": 5.1e-7},
+                    "ns_per_packet_abs_tolerance": {"const": 5.1e-7},
+                    "packet_rate_abs_tolerance": {"const": 0.00051},
+                    "packet_count": {"const": "batch_size * measurement_iterations"}
+                  }
+                },
+                "diagnostic_controls": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["variants", "classification", "used_for_acceptance", "used_for_reversal_or_decision"],
+                  "properties": {
+                    "variants": {"const": ["monolith", "batch_vtable"]},
+                    "classification": {"const": "non-comparable-diagnostic-only"},
+                    "used_for_acceptance": {"const": false},
+                    "used_for_reversal_or_decision": {"const": false}
+                  }
+                },
+                "run_summaries": {
+                  "type": "array",
+                  "minItems": 7,
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "object",
+                    "required": ["run_id", "samples_per_variant", "batch_results"],
+                    "properties": {
+                      "run_id": {"type": "integer", "minimum": 1},
+                      "samples_per_variant": {"type": "integer", "minimum": 1},
+                      "batch_results": {"type": "array", "minItems": 2}
+                    }
+                  }
+                },
+                "batch_results": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "object",
+                    "required": ["batch_size", "variants", "direct4_to_direct0_packet_rate_ratio", "perf_core_001_pass"],
+                    "properties": {
+                      "batch_size": {"enum": [32, 64]},
+                      "variants": {
+                        "type": "array",
+                        "minItems": 8,
+                        "items": {
+                          "type": "object",
+                          "required": ["variant", "samples", "packet_rate_median", "packet_rate_pstdev", "cycles_per_packet_median", "cycles_per_packet_pstdev"],
+                          "properties": {
+                            "variant": {"type": "string"},
+                            "samples": {
+                              "type": "array",
+                              "minItems": 35,
+                              "items": {
+                                "type": "object",
+                                "required": ["run_id", "sample", "order", "elapsed_ns", "cycles", "ns_per_packet", "cycles_per_packet", "packet_rate"],
+                                "properties": {"run_id": {"type": "integer", "minimum": 1}}
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "direct4_to_direct0_packet_rate_ratio": {"type": "number", "minimum": 0.95},
+                      "perf_core_001_pass": {"const": true}
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

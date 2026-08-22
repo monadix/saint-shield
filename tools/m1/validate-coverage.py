@@ -242,7 +242,11 @@ def expect_self_test_failure(
 
 
 def run_self_tests() -> None:
-    records = parse_coverage()
+    records = [
+        record
+        for record in parse_coverage()
+        if str(record["id"]) in EXPECTED_M1_IDS
+    ]
     known_ids = catalogue_ids()
     discovered_tests = all_zig_tests()
     executed_tests = reachable_zig_tests()
@@ -342,7 +346,11 @@ def main() -> None:
         run_self_tests()
         return
 
-    records = parse_coverage()
+    records = [
+        record
+        for record in parse_coverage()
+        if str(record["id"]) in EXPECTED_M1_IDS
+    ]
     failures = validate_records(
         records,
         catalogue_ids(),
@@ -352,7 +360,7 @@ def main() -> None:
     if failures:
         raise SystemExit("\n".join(failures))
     print(
-        f"M1 coverage map passed: {len(records)} unique known IDs, all code paths "
+        f"M1 coverage map passed: {len(records)} exact historical IDs, all code paths "
         f"nonempty, statuses accepted, and mapped tests reachable from "
         f"{CANONICAL_TEST_ROOT.relative_to(ROOT)}"
     )

@@ -1,65 +1,86 @@
-# Module: processor
+# Processor module
 
 ## Responsibility
 
-`processor` will define native processor declarations, capabilities, prepared
-state, worker state, and bounded batch-call semantics. M0-V contains only a
-compile sentinel; the contract is predecessor-gated to M3.
-
-It does not order processors, publish generations, or implement policy syntax.
+`processor` defines the native M3 descriptor, lifecycle errors/results,
+resource estimates and limits, counted allocator, typed metadata store, and
+opaque call-scoped contexts. It does not order stages or publish generations.
 
 ## Requirements and invariants
 
-M3 owns FR-PROC-001..009, FR-EXT-001..003, INV-RES-001..002, and the processor
-side of AC-003/012. M0-V claims none of those behaviors.
+Primary mappings are FR-PROC-001..009, FR-EXT-001..003, FR-STATE-001/004,
+INV-RES-001/002, and AC-012. FR-COMP-005/006 are claimed only for the open
+native contract: M3 contains no closed executor enumeration and does not claim
+that an optional executor implementation exists.
 
 ## Public contract
 
-`scaffold_ready` indicates a reserved namespace only.
+`ProcessorDescriptor` declares stable identity/API, packet access,
+dispositions/outputs, artifacts, authority-free typed metadata, concrete bounded
+metric/event schemas, services, bounded work, errors, update-state
+schema/default, and resource categories. M3 rejects retention declarations.
+`ProcessContext(descriptor)` generates the exact call-scoped surface.
 
 ## Dependencies
 
-The future contract may depend on `foundation` and `packet`; it must not import
-adapters, update machinery, or the optional standard policy module.
+The module depends only on `foundation` and `packet`. Adapters, update runtime,
+sources, and policy are not imported.
 
 ## Object lifecycle and ownership
 
-No runtime object exists. M3 will specify prepare, per-worker construction,
-reverse cleanup, and borrow-only batch access.
+A processor provides `Prepared` and `Worker` values. Pipeline construction owns
+both tuples. `ProcessContext` stores only an opaque cookie; no owner, token,
+pointer, slice, writer, or borrow is returned to the processor. A
+package-internal invocation bridge binds that cookie to the installed descriptor
+and a pointer-free effective-capability record and revokes it before return.
+Neither invocation nor capability-installation machinery is exported through
+the public `processor` or root namespace.
 
 ## Concurrency
 
-No state exists in M0-V. Prepared data will be immutable and worker state
-single-owner unless a declaration explicitly proves otherwise.
+One worker owns its `Worker` value. Prepared values are static-generation owned
+and treated as immutable during execution. One thread-local invocation is
+active for the duration of a direct stage call.
 
 ## Allocation and work bounds
 
-The sentinel allocates nothing. M3 declarations must expose preparation and
-worker resource bounds and forbid undeclared packet-path allocation.
+Preparation and worker construction use separately counted per-stage allocators
+with hard declared limits. Each allocator is sealed at constructor return and
+opens free-only authority during owner-mediated cleanup. Descriptors report
+finite resource categories and an authoritative maximum batch-work formula.
+Fixed metadata slots and packet-path access allocate nothing.
 
 ## Failure behavior
 
-No processor can run. M3 will map declared errors to explicit packet/default
-effects and treat invariant violations as non-recoverable faults.
+Lifecycle failures use bounded categories. Expected processing errors are the
+exact `ProcessError` set and follow the descriptor policy. Invariant faults are
+not converted to recoverable packet errors.
 
 ## Security boundary
 
-Processor declarations and artifacts become validated inputs in M3.
+Generated contexts recheck both declared and installed capabilities on every
+operation. Trusted raw writes are explicit and additionally require application
+opt-in. Metadata/metric/event inline types recursively reject pointer, slice,
+function, frame, allocator-bearing, and other lifetime authority. Processor
+results cannot carry packet authority or arbitrary callback state.
 
 ## Performance budget
 
-The future batch call is static and bounded, without a callback per packet.
+The processor boundary is one direct call per non-empty stage and batch. It has
+no per-packet virtual dispatch or hot-path allocation.
 
 ## Tests and evidence
 
-M0-V imports the namespace. M3 requires compile-fail contracts, allocation
-faults, ordering scenarios, and reference-runner differential tests.
+`m3-compile-fail` covers declaration categories. `m3-test` covers limits,
+underestimates, capabilities, allocation failures, cleanup, error policies,
+metadata, ordering, and seeded reference pipelines.
 
 ## Alternatives and evolution
 
-Runtime plugin discovery remains out of scope; finite compile-time composition
-keeps the public boundary replaceable.
+Dynamic native plugins and optional executors remain future modules using this
+same open contract. M3 records update modes but has no generation switching or
+QSBR.
 
 ## Open questions
 
-None at M0-V.
+None for M3.

@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Saint Shield is a backend-neutral Zig framework for low-level Layer 4
-//! protection tools. The M2 surface adds bounded parsing, selection,
-//! dispositions, structured/raw mutation, software finalization, and explicit
-//! retention to the M1 ownership and segment-safe view foundation.
+//! protection tools. The M3 surface adds validated native processors, counted
+//! prepared/worker lifecycle, direct static pipelines, typed stage metadata,
+//! explicit error policies, and a public synthetic harness to the M2 packet
+//! foundation.
 
 /// Dependency-free identifiers, bounded errors/budgets, and monotonic time.
 pub const foundation = @import("foundation/root.zig");
@@ -25,8 +26,8 @@ pub const testing = @import("testing/root.zig");
 /// Adapter namespace; adapters depend on core contracts, never the reverse.
 pub const io = @import("io/root.zig");
 
-/// Exact framework source API version for the M2 implementation surface.
-pub const version = "0.2.0-m2";
+/// Exact framework source API version for the M3 implementation surface.
+pub const version = "0.3.0-m3";
 
 test "public module surface remains importable without optional adapters" {
     _ = foundation;

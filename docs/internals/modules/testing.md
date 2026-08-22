@@ -1,73 +1,79 @@
-# Module: testing
+# Testing module
 
 ## Responsibility
 
-`testing` standardizes deterministic seeds and bounded minimized operation
-traces for generated tests. Synthetic packets and capture records are supplied
-through public `io.synthetic` and `io.pcap` modules. The full processor harness
-remains predecessor-gated to M3.
+`testing` provides bounded seeded traces and the public
+`ProcessorTestHarness(PipelineType)`. It exercises the real synthetic queue,
+packet, disposition, and generated pipeline contracts without production
+traffic.
 
 ## Requirements and invariants
 
-The M1 helper supports FR-TEST-001/002 diagnostics and the archived requirement
-that randomized failures print a seed, exact Zig toolchain, and minimized trace.
-Synthetic tests use it alongside INV-PKT-001/002 evidence.
+The module supports FR-TEST-001/002 diagnostics and the archived requirement
+that randomized failures identify seed, exact Zig toolchain, and minimized
+trace. The harness must reconcile every received synthetic token.
 
 ## Public contract
 
-`SeededTrace(N)` owns one deterministic Zig PRNG and at most `N` trace bytes.
-`append` never allocates; insufficient capacity sets `truncated`. A failure
-report always labels `seed`, `toolchain`, and `minimized_trace`.
+One harness prepares one static generation and generation-checked worker handle. Submission accepts bytes
+or segments, origin, deterministic monotonic time, and fixed typed input
+metadata. Results own copied final packet bytes and expose dispositions,
+stage/error status, completion state, and resource accounting.
 
 ## Dependencies
 
-Only the Zig standard library is imported. External fuzzers and packet oracles
-remain tooling dependencies, not runtime-library imports.
+The harness depends on public `foundation`, `packet`, `pipeline`, and
+`io.synthetic` contracts. Seeded trace support imports only Zig standard
+library facilities.
 
 ## Object lifecycle and ownership
 
-A trace is a caller-owned value. Returned random interfaces borrow its PRNG;
-trace slices borrow its fixed storage.
+The harness owns the prepared and worker pipeline. Worker cleanup precedes
+prepared cleanup. A result owns its copied bytes. Received tokens are completed
+on success and reconciled before any returned failure.
 
 ## Concurrency
 
-One test thread owns a trace. Parallel property runs use independent instances
-and independently recorded seeds.
+One test thread owns a harness or seeded trace. Parallel property runs use
+independent instances and independently recorded seeds.
 
 ## Allocation and work bounds
 
-Trace construction, random generation, append, and inspection allocate nothing.
-Append is O(operation length) and bounded by the comptime storage size.
+Harness setup and owned result copies may allocate through the supplied test
+allocator. Pipeline packet processing uses fixed metadata and records zero
+hot-path allocator calls. `SeededTrace` uses fixed storage.
 
 ## Failure behavior
 
-Trace overflow is observable through `truncated`; it never writes beyond the
-fixed buffer. Diagnostic printing occurs only after a failed test.
+Initialization and submission failures unwind pipeline state and token
+ownership deterministically. Exhaustive allocation-index sweeps cover public
+prepare, instantiate, synthetic submission, result copying, and cleanup paths.
+Trace overflow is explicit through `truncated` and never writes past fixed
+storage.
 
 ## Security boundary
 
-Trace text is diagnostic input supplied by the test. Capture parsing remains in
-the bounded PCAP module.
+Inputs are repository-owned synthetic fixtures. The harness opens no device,
+socket, capture source, or external system.
 
 ## Performance budget
 
-This module is test-only and does not execute in packet workers. Instrumenting
-a test must not alter the production code under observation.
+The harness is test-only and not used in production packet workers. Its
+instrumentation records the production contract without changing the direct
+pipeline call shape.
 
 ## Tests and evidence
 
-Tests prove equal seeds reproduce equal PRNG values and trace overflow is
-bounded and explicit. M1 packet properties use an independent exhaustive token
-model and deterministic synthetic queue scenarios, so they do not need a
-random seed to cover their finite state spaces. The canonical
-`docs/requirements/coverage.yaml` map is checked for known/unique M1 IDs,
-existing design/code paths, named tests, and passing-claim evidence.
+M3 tests cover partial metadata validity, mixed terminal outcomes, empty
+batches, cleanup sweeps, and all error policies. Seeded reference tests use
+fixed seed `0x4d33524546455245` and print a bounded trace on mismatch.
 
 ## Alternatives and evolution
 
-M3 builds the public processor harness over the real synthetic queues and
-pipeline contracts. The seed/trace output format remains usable by it.
+Hot updates, metrics collection, and event collection remain absent until
+their predecessor-gated milestones. The harness remains reusable by those
+future features.
 
 ## Open questions
 
-None for M1.
+None for M3.

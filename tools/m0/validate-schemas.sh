@@ -7,12 +7,15 @@ trap 'rm -rf "$work_dir"' EXIT HUP INT TERM
 
 check-jsonschema --check-metaschema bench/schemas/benchmark-result.schema.json
 check-jsonschema --check-metaschema bench/schemas/environment-manifest.schema.json
+check-jsonschema --check-metaschema bench/schemas/m3-benchmark-result.schema.json
 check-jsonschema --schemafile bench/schemas/benchmark-result.schema.json \
     bench/examples/benchmark.m0v.json
 check-jsonschema --schemafile bench/schemas/benchmark-result.schema.json \
     bench/examples/benchmark.m1.json
 check-jsonschema --schemafile bench/schemas/benchmark-result.schema.json \
     bench/examples/benchmark.m2.json
+check-jsonschema --schemafile bench/schemas/m3-benchmark-result.schema.json \
+    bench/examples/benchmark.m3.json
 check-jsonschema --schemafile bench/schemas/environment-manifest.schema.json \
     bench/examples/environment.m0v.json
 
@@ -43,6 +46,14 @@ jq '.backend = {"name":"synthetic","version":"25.11.2","mode":"host-local"}' \
 if check-jsonschema --schemafile bench/schemas/benchmark-result.schema.json \
     "$work_dir/wrong-synthetic-benchmark.json" >/dev/null 2>&1; then
     printf '%s\n' "benchmark schema accepted a wrong synthetic backend version" >&2
+    exit 1
+fi
+
+jq '.methodology.independent_runs = 6 | .result.perf.independent_runs = 6' \
+    bench/examples/benchmark.m3.json >"$work_dir/forged-m3-runs.json"
+if check-jsonschema --schemafile bench/schemas/m3-benchmark-result.schema.json \
+    "$work_dir/forged-m3-runs.json" >/dev/null 2>&1; then
+    printf '%s\n' "M3 benchmark schema accepted fewer than seven independent runs" >&2
     exit 1
 fi
 

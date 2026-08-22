@@ -8,7 +8,7 @@ import re
 
 ROOT = Path(__file__).resolve().parents[2]
 EXPECTED_M1 = "0.1.0-m1"
-SUPPORTED_CURRENT = {"0.1.0-m1", "0.2.0-m2"}
+SUPPORTED_CURRENT = {"0.1.0-m1", "0.2.0-m2", "0.3.0-m3"}
 
 
 def one_match(path: Path, pattern: str, label: str) -> str:

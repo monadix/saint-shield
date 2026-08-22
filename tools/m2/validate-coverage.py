@@ -33,7 +33,11 @@ EXPECTED_M2_IDS = set(M1.EXPECTED_M1_IDS) | {
 
 
 def main() -> None:
-    records = M1.parse_coverage()
+    records = [
+        record
+        for record in M1.parse_coverage()
+        if str(record["id"]) in EXPECTED_M2_IDS
+    ]
     failures = M1.validate_records(
         records,
         M1.catalogue_ids(),

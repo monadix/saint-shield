@@ -1,6 +1,6 @@
 # Saint Shield Implementation Progress
 
-Last updated: 2026-08-11
+Last updated: 2026-08-22
 
 This is the canonical implementation ledger. It reports progress and evidence;
 it does not override requirements or technical decisions. Update it only when
@@ -37,7 +37,7 @@ do not change milestone status.
 | M0-H - physical testbed contract | Not started | - | - | Deferred until hardware exists. |
 | M1 - foundation, ownership, and views | Complete | 2026-07-19 | 2026-07-29 | Independent review closure is recorded in [evidence/m1/REVIEW.md](../evidence/m1/REVIEW.md); the gate verifier reproduced both manifests, cumulative CI, and diff checks as recorded in `evidence/m1/VERIFICATION.md`. |
 | M2 - parsing, dispositions, and mutation | Complete | 2026-08-02 | 2026-08-11 | All sixteen findings are closed. The mandatory post-High review and independent final exact-tree cumulative gate passed at `bf76210`/`b2609e0`; exact evidence is recorded in `evidence/m2/`. |
-| M3 - native processor contract and static pipeline | Not started | - | - | - |
+| M3 - native processor contract and static pipeline | Complete | 2026-08-13 | 2026-08-23 | All findings through M3-GATE-001 are closed. The mandatory fresh review and independent final exact-tree retry passed and main accepted M3 at `9c008e5`/`18d2c7d`; exact evidence is recorded in `evidence/m3/`. |
 | M4 - DPDK adapter and physical ownership loop | Not started | - | - | Requires M0-H. |
 | M5 - worker runtime and core metrics | Not started | - | - | - |
 | M6 - generation update and QSBR | Not started | - | - | - |
@@ -48,7 +48,9 @@ do not change milestone status.
 | M11 - AF_XDP and optional integration proof | Not started | - | - | - |
 | M12 - production hardening and 1.0 candidate | Not started | - | - | - |
 
-## Current target: M0-V through M3
+## Completed target: M0-V through M3
+
+M0-H remains Not started and is mandatory before M4. M4 is not activated.
 
 ### M0-V checklist
 
@@ -134,24 +136,48 @@ Evidence:
 
 ### M3 checklist
 
-- [ ] Descriptor/capability schemas and comptime validation exist.
-- [ ] Prepared/worker lifecycle and reverse cleanup exist.
-- [ ] Tuple pipeline performs one direct call per processor per batch.
-- [ ] Stage metadata, resource estimates, and error/default policies exist.
-- [ ] Public processor test harness and example application exist.
-- [ ] Compile-fail suite covers every invalid declaration category.
-- [ ] Ordering, mixed dispositions, allocation faults, capability denial, and
+- [x] Descriptor/capability schemas and comptime validation exist.
+- [x] Prepared/worker lifecycle and reverse cleanup exist.
+- [x] Tuple pipeline performs one direct call per processor per batch.
+- [x] Stage metadata, resource estimates, and error/default policies exist.
+- [x] Public processor test harness and example application exist.
+- [x] Compile-fail suite covers every invalid declaration category.
+- [x] Ordering, mixed dispositions, allocation faults, capability denial, and
       tiny reference-pipeline comparisons pass.
-- [ ] 0/1/2/4/8 processor benchmarks and negative-control spikes are recorded.
-- [ ] PERF-CORE-001, AC-003, and AC-012 pass.
+- [x] Fresh 0/1/2/4/8, diagnostic-control, and terminal-heavy benchmark
+      evidence is recorded after authority-return acknowledgment.
+- [x] PERF-CORE-001 current-source writer and cumulative gates pass; focused
+      AC-003 and AC-012 remediation checks pass.
+- [x] PERF-002/003/004 closed by the discovering performance reviewer.
+- [x] M3-FRESH-001/002, M3-FRESH2-001, and M3-FINAL-001 are closed, the
+      exact-context authority inventory is acknowledged, and current-source
+      retained evidence plus the cumulative writer gate pass.
+- [x] Mandatory fresh full-diff review and independent final exact-tree gate
+      pass; main-session acceptance is recorded.
 
 Evidence:
 
-- Commands: _pending_
-- Requirement/test mapping: _pending_
-- Compile-fail/property artifacts: _pending_
-- Benchmark report: _pending_
-- Known limitations: _pending_
+- Commands: focused remediation, exact reviewer acknowledgment,
+  current-source capture, and the latest 463.24-second cumulative
+  writer gate are recorded in `evidence/m3/VERIFICATION.md`.
+- Requirement/test mapping: 51 exact cumulative claims in validated
+  `docs/requirements/coverage.yaml`, with 27 M3 claims and preserved M1/M2
+  provenance.
+- Compile-fail/property artifacts: one legitimate external pipeline, 28
+  declaration/public-authority rejection cases, 21 dedicated M3 runtime
+  scenarios, and one benchmark-constructor allocation scenario, including
+  authority forgery, schema,
+  lifecycle, cleanup/failure sweeps, exact resource/work bounds, and a fixed
+  seed reference comparison.
+- Benchmark report: `bench/examples/benchmark.m3.json` has SHA-256
+  `6437d1d35cf6f19603fbf6b54c5f8ff371e23a94ad8fdd5a06192639958b0cbf`,
+  binds post-acknowledgment closure source `332aa44`/`1166318`, is committed
+  alone by `0613106`, retains seven independent runs and 35 samples per
+  variant, and passes ratios 0.994024/0.998583 at batches 32/64.
+- Known limitations: synthetic/virtual host-local regression only; AArch64 is
+  build-tested; live update/observability, sources, production adapters, and
+  policy execution remain out of scope. Local integration remains pending
+  separate direction. M0-H is mandatory before M4, which remains Not started.
 
 ## Active blockers
 
@@ -189,3 +215,11 @@ ledger status. Keep command output in test/benchmark artifacts, not pasted here.
 | 2026-08-11 | M2 | Re-addressed the discoverer's remaining M2-FINAL-001 output-pointer/raw-slice bypass with opaque checked output handles and atomic retention rejection after nonrevocable raw authority; corrected the remaining same-class M2-EXIT-001 M1-guide command and refreshed retained artifacts. | Debug, ReleaseSafe, ReleaseFast, ReleaseSafe Linux AArch64, docs/links, schemas, M1/M2 coverage/version, retained fuzz, retained benchmark, formatting, register, and diff checks passed. Artifacts bind clean source `05eb395`; exact evidence is recorded in `evidence/m2/REVIEW.md` and `evidence/m2/VERIFICATION.md`. Both findings remain addressed pending discoverer closure. | Obtain both discoverer closures, then run the mandatory post-High fresh full-diff review and independent final exact-tree cumulative gate; do not begin M3 or mark M2 complete beforehand. |
 | 2026-08-11 | M2 | Closed M2-FINAL-001 and M2-EXIT-001 after their successor discoverers reran the corrective contracts at `1e6bf0e`/`fd6afdb`; all sixteen findings are closed. | The successor final reviewer passed all three x86 modes, ReleaseSafe Linux AArch64, retained validators, and the full corrective audit. The successor exit explorer passed the pinned documentation check, nearby public gate/API audit, diff check, and status inspection. Exact closure evidence is in `evidence/m2/REVIEW.md`; M2 remains In progress. | Run the mandatory fresh post-High full-diff review, then the independent final exact-tree cumulative gate; do not begin M3 or mark M2 complete beforehand. |
 | 2026-08-11 | M2 | Accepted M2 after the mandatory post-High review and independent final exact-tree gate passed at `bf76210`/`b2609e0`; milestone status is Complete. | Both specification manifests passed; cumulative M2 hardware-free CI passed in 30.0 seconds; baseline-to-tip diff, clean status, ignored-status scope, and unchanged commit/tree checks passed. The initial sandboxed Nix fetcher-lock failure was rerun with scoped approval without changing repository state. Exact evidence is in `evidence/m2/VERIFICATION.md`. | M3 is the next predecessor-gated milestone. M0-H remains deferred and mandatory before M4. |
+| 2026-08-13 | M3 | Began the native processor contract, static pipeline, public synthetic harness, and deterministic example implementation. | Expected cumulative gate: both immutable specification manifests; Debug, ReleaseSafe, and ReleaseFast semantics; processor compile-fail contracts; native example; ReleaseSafe AArch64 concrete pipeline compile; M3 coverage/version, schemas, docs, benchmark/evidence, cumulative `nix develop --command zig build ci`; `git diff --check 8da41e27b385fd07f703a9f03c2de2ae38b0e696..HEAD`; clean ordinary/ignored status; unchanged committed tip/tree. | Implement M3 only, obtain independent review and closure of any findings, then run the final exact-tree gate; do not mark Complete or integrate beforehand. |
+| 2026-08-13 | M3 | Committed the native processor/pipeline vertical slice, public synthetic harness/example, 16-case compile-fail suite, eight runtime scenarios, 51-claim cumulative mapping, documentation/version surface, fixed-anchor predecessor compatibility, and retained dispatch artifact; cumulative writer preflight passed. | `nix develop --command zig build ci` reported the complete cumulative M3 hardware-free gate passed. The retained ReleaseFast artifact binds clean source `73a5a60`/tree `70f04cf`; direct-4/direct-0 ratios are 0.993884 at batch 32 and 1.005086 at batch 64. Exact checks and non-capacity limitations are in `evidence/m3/VERIFICATION.md`; this is writer evidence only. | Run independent complete-diff review of `8da41e2..TIP`, remediate and close any findings, then run the final clean committed exact-tree gate. Keep M3 In progress and do not integrate or begin M4. |
+| 2026-08-13 | M3 | Completed Critical remediation, both renewed authority-inventory acknowledgments, and the reviewed current-source artifact/cumulative writer gate; all API/resource and PERF-001/005/006 findings are closed. | Retained evidence binds `978cf09`/`5d98a71`, contains seven independent runs and 35 samples per variant, and passes PERF-CORE-001 at 1.005036/0.991626. The complete cumulative M3 gate passed in 478 seconds and its own fresh ratios were 1.007751/0.996709; exact evidence and limitations are in `evidence/m3/REVIEW.md` and `evidence/m3/VERIFICATION.md`. | Obtain discovering performance-reviewer closure for PERF-002/003/004, then run the mandatory post-High full-diff review and independent final exact-tree gate. Keep M3 In progress; do not integrate or begin M4. |
+| 2026-08-13 | M3 | Recorded discovering performance-reviewer closure of PERF-002/003/004 at `933128b`/`90aeb35`, then addressed post-High M3-FRESH-001/002 source-only. | Pre-callback disposition/application/default validation, raw-authority rejection, post-callback batch-generation revocation, exact caller token reconciliation, and benchmark-constructor reverse unwind pass root/M3 tests in all modes plus compile-fail, example, AArch64, benchmark compile-only, docs, coverage, version, and diff checks. The retained artifact is unchanged at SHA-256 `630b7434ed89b6cce70425214f0f8774caa97bacf0f65029b46ac103d63a9941` and is stale for the new source. | Obtain exact `m3_api_review` re-audit/closure and renewed authority-inventory acknowledgment. Only then refresh the source-bound artifact and rerun its authorized gates; keep M3 In progress and do not integrate or begin M4. |
+| 2026-08-13 | M3 | Recorded `m3_api_review` closure of M3-FRESH-001/002 and renewed authority-inventory acknowledgment at source `1839df61`/tree `8c367eac`, then retained and committed the reviewed current-source benchmark artifact. | Artifact commit `ea052dc3` binds that source, has SHA-256 `88a81ca196a99d3d8cac92d3ee6a018609deab2748f46f2ae933f60efa37010a`, preserves seven independent runs and 35 samples per variant, and passes ratios 0.997824/1.015560. Schemas, retained validation, ten negatives, and cumulative `zig build ci` pass; CI completed in 466.66 seconds and its fresh ratios were 0.993155/0.988615. | Run the mandatory post-High fresh full-diff review, then the independent final exact-tree gate. Keep M3 In progress; do not integrate or begin M4. |
+| 2026-08-22 | M3 | Recorded `m3_resource_review` closure of M3-FRESH2-001 and renewed authority-inventory acknowledgment at source `8828ab7`/tree `ad390d9`, then retained and committed the reviewed current-source benchmark artifact. | Artifact commit `53b6c63` binds post-acknowledgment source `075b3f7`/tree `204d23d`, has SHA-256 `1073d68dea8bd43476d3f9122b8df265f0a11208540c9d1e08f57351dc7e50d2`, preserves seven independent runs and 35 samples per variant, and passes ratios 0.990147/0.998627. Schemas, retained validation, ten negatives, and cumulative `zig build ci` pass; CI took approximately 399 seconds and its fresh ratios were 0.996907/0.997095. | Run the mandatory post-High fresh full-diff review, then the independent final exact-tree gate. Keep M3 In progress; do not integrate or begin M4. |
+| 2026-08-23 | M3 | Recorded `m3_api_review` closure of M3-FINAL-001 and exact-context authority-inventory acknowledgment at source `1dd6614`/tree `11d25fb`, then retained and committed the reviewed current-source benchmark artifact. | Closure commit `332aa44` is evidence-only. Artifact commit `0613106` binds that closure tree, has SHA-256 `6437d1d35cf6f19603fbf6b54c5f8ff371e23a94ad8fdd5a06192639958b0cbf`, preserves seven independent runs and 35 samples per variant, and passes ratios 0.994024/0.998583. Schemas, retained validation, ten negatives, and cumulative `zig build ci` pass; CI took 463.24 seconds and its fresh ratios were 0.998523/0.995566. | Run the mandatory fresh full-diff review, then the independent final exact-tree gate. Keep M3 In progress; do not integrate or begin M4. |
+| 2026-08-23 | M3 | Accepted M3 after the mandatory fresh review and independent final exact-tree retry passed; `m3_final_gate` closed M3-GATE-001 and main accepted exact gate tip `9c008e5`/tree `18d2c7d`. | Both immutable manifests and canonical cumulative `nix develop --command zig build ci` passed; baseline-to-tip diff, unchanged commit/tree, clean ordinary status, retained artifact SHA `6437d1d35cf6f19603fbf6b54c5f8ff371e23a94ad8fdd5a06192639958b0cbf`, and accepted ratios 0.994024/0.998583 were verified from epoch 1787434127 through capture 1787434187. M3 status is Complete. | Do not activate M4. M0-H remains the mandatory predecessor and must be completed before M4; integration awaits separate main-session direction. |

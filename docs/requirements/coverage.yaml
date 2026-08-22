@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# Canonical implementation coverage map, currently scoped through M2.
+# Canonical implementation coverage map, currently scoped through M3.
 # Later-milestone IDs are added only when their implementation evidence exists;
 # the normative catalogue remains source-requirements/requirements.yaml.
 - id: FR-PKT-001
@@ -134,6 +134,297 @@
     - "FR-PKT-005 FR-PKT-010 FR-PKT-013 AC-002 INV-PKT-003 INV-PKT-004 terminal dispositions are atomic and group in receive order"
   status: passing
   since: 0.2.0-m2
+
+- id: FR-COMP-001
+  design: docs/api/index.md
+  code:
+    - src/root.zig
+    - src/pipeline/root.zig
+  tests:
+    - "one-stage direct pipeline prepares instantiates and resolves an empty batch"
+  status: passing
+  since: 0.3.0-m3
+
+- id: FR-COMP-002
+  design: docs/internals/modules/pipeline.md
+  code:
+    - src/pipeline/root.zig
+  tests:
+    - "AC-003 ordered mixed processing preserves prior terminals and short-circuits empty active"
+    - "process contexts reject retyped broader, newly minted, and stale cookies"
+  status: passing
+  since: 0.3.0-m3
+
+- id: FR-COMP-003
+  design: docs/internals/modules/pipeline.md
+  code:
+    - src/pipeline/root.zig
+  tests:
+    - "zero and one-stage pipeline types validate"
+  status: passing
+  since: 0.3.0-m3
+
+- id: FR-COMP-005
+  design: docs/internals/modules/processor.md
+  code:
+    - src/processor/root.zig
+    - examples/static_filter/main.zig
+  tests:
+    - "one-stage direct pipeline prepares instantiates and resolves an empty batch"
+  status: passing
+  since: 0.3.0-m3
+
+- id: FR-COMP-006
+  design: docs/internals/modules/processor.md
+  code:
+    - src/processor/root.zig
+  tests:
+    - "zero and one-stage pipeline types validate"
+  status: passing
+  since: 0.3.0-m3
+
+- id: FR-PROC-001
+  design: docs/internals/modules/processor.md
+  code:
+    - src/processor/root.zig
+    - src/pipeline/root.zig
+  tests:
+    - "preparation and worker partial failures clean exact reverse prefixes"
+  status: passing
+  since: 0.3.0-m3
+
+- id: FR-PROC-002
+  design: docs/user/m3-native-pipeline.md
+  code:
+    - src/pipeline/root.zig
+  tests:
+    - "AC-012 exact limits pass and one-byte excess, overflow, multiplication, and underestimate reject"
+    - "framework and metadata bytes are exact hard limits for multiple workers"
+    - "accepted work estimates cover worst case and runtime results stay within partial formula"
+  status: passing
+  since: 0.3.0-m3
+
+- id: FR-PROC-003
+  design: docs/internals/modules/processor.md
+  code:
+    - src/processor/root.zig
+  tests:
+    - "prepared and worker construction failure sweep leaves zero allocator bytes"
+    - "public harness allocation failure sweep cleans every reachable prefix"
+    - "benchmark constructor allocation sweep reconciles tokens and exact reverse teardown"
+    - "retained construction allocators are sealed on the packet path and cleanup remains exact"
+  status: passing
+  since: 0.3.0-m3
+
+- id: FR-PROC-004
+  design: docs/internals/modules/pipeline.md
+  code:
+    - src/processor/root.zig
+    - src/pipeline/root.zig
+  tests:
+    - "every explicit error policy preserves prior terminal packets and stop skips successors"
+    - "process contexts reject retyped broader, newly minted, and stale cookies"
+    - "invalid disposition configurations reject before mutating processor callbacks"
+    - "escaped raw batch authority rejects before processor callbacks"
+    - "post-callback work breach revokes batch aliases and caller completes token once"
+  status: passing
+  since: 0.3.0-m3
+
+- id: FR-PROC-005
+  design: docs/internals/modules/processor.md
+  code:
+    - src/pipeline/root.zig
+  tests:
+    - "preparation and worker partial failures clean exact reverse prefixes"
+    - "prepared owner enforces capacity early-deinit stale recycle and repeated cleanup"
+  status: passing
+  since: 0.3.0-m3
+
+- id: FR-PROC-006
+  design: docs/internals/modules/processor.md
+  code:
+    - src/pipeline/root.zig
+  tests:
+    - "preparation and worker partial failures clean exact reverse prefixes"
+    - "prepared and worker construction failure sweep leaves zero allocator bytes"
+    - "public harness allocation failure sweep cleans every reachable prefix"
+  status: passing
+  since: 0.3.0-m3
+
+- id: FR-PROC-007
+  design: docs/internals/modules/pipeline.md
+  code:
+    - src/pipeline/root.zig
+  tests:
+    - "preparation and worker partial failures clean exact reverse prefixes"
+    - "prepared owner enforces capacity early-deinit stale recycle and repeated cleanup"
+  status: passing
+  since: 0.3.0-m3
+
+- id: FR-PROC-008
+  design: docs/internals/modules/processor.md
+  code:
+    - src/processor/root.zig
+    - src/pipeline/root.zig
+  tests:
+    - "AC-012 exact limits pass and one-byte excess, overflow, multiplication, and underestimate reject"
+    - "framework and metadata bytes are exact hard limits for multiple workers"
+    - "per-stage budgets reject slack laundering"
+    - "accepted work estimates cover worst case and runtime results stay within partial formula"
+  status: passing
+  since: 0.3.0-m3
+
+- id: FR-PROC-009
+  design: docs/internals/modules/pipeline.md
+  code:
+    - src/pipeline/root.zig
+  tests:
+    - "assembly rejects unavailable read, trusted raw, output, and retention capabilities before prepare"
+  status: passing
+  since: 0.3.0-m3
+
+- id: FR-EXT-001
+  design: docs/user/m3-native-pipeline.md
+  code:
+    - src/processor/root.zig
+    - examples/static_filter/main.zig
+  tests:
+    - "AC-003 ordered mixed processing preserves prior terminals and short-circuits empty active"
+    - "process contexts reject retyped broader, newly minted, and stale cookies"
+  status: passing
+  since: 0.3.0-m3
+
+- id: FR-EXT-002
+  design: docs/internals/modules/processor.md
+  code:
+    - src/processor/root.zig
+  tests:
+    - "zero and one-stage pipeline types validate"
+    - "metric and event schemas require exact application availability before prepare"
+  status: passing
+  since: 0.3.0-m3
+
+- id: FR-EXT-003
+  design: docs/internals/modules/pipeline.md
+  code:
+    - src/pipeline/root.zig
+  tests:
+    - "seeded tiny direct pipelines match a simple terminal-count reference"
+    - "process contexts reject retyped broader, newly minted, and stale cookies"
+  status: passing
+  since: 0.3.0-m3
+
+- id: FR-PKT-014
+  design: docs/internals/modules/pipeline.md
+  code:
+    - src/pipeline/root.zig
+  tests:
+    - "AC-003 ordered mixed processing preserves prior terminals and short-circuits empty active"
+  status: passing
+  since: 0.3.0-m3
+
+- id: FR-PKT-015
+  design: docs/internals/modules/pipeline.md
+  code:
+    - src/pipeline/root.zig
+    - bench/micro/m3_static_pipeline.zig
+  tests:
+    - "seeded tiny direct pipelines match a simple terminal-count reference"
+  status: passing
+  since: 0.3.0-m3
+
+- id: FR-STATE-001
+  design: docs/internals/modules/processor.md
+  code:
+    - src/processor/root.zig
+    - src/pipeline/root.zig
+  tests:
+    - "preparation and worker partial failures clean exact reverse prefixes"
+    - "prepared owner enforces capacity early-deinit stale recycle and repeated cleanup"
+  status: passing
+  since: 0.3.0-m3
+
+- id: FR-STATE-004
+  design: docs/internals/modules/processor.md
+  code:
+    - src/processor/root.zig
+  tests:
+    - "one-stage direct pipeline prepares instantiates and resolves an empty batch"
+  status: passing
+  since: 0.3.0-m3
+
+- id: FR-TEST-001
+  design: docs/internals/modules/testing.md
+  code:
+    - src/testing/root.zig
+  tests:
+    - "seeded tiny direct pipelines match a simple terminal-count reference"
+  status: passing
+  since: 0.3.0-m3
+
+- id: INV-RES-001
+  design: docs/internals/modules/pipeline.md
+  code:
+    - src/processor/root.zig
+    - src/pipeline/root.zig
+    - src/testing/root.zig
+  tests:
+    - "typed produced metadata records partial validity and fixed scratch accounting"
+    - "retained construction allocators are sealed on the packet path and cleanup remains exact"
+  status: passing
+  since: 0.3.0-m3
+
+- id: INV-RES-002
+  design: docs/internals/modules/pipeline.md
+  code:
+    - src/processor/root.zig
+    - src/pipeline/root.zig
+  tests:
+    - "AC-012 exact limits pass and one-byte excess, overflow, multiplication, and underestimate reject"
+    - "prepared and worker construction failure sweep leaves zero allocator bytes"
+    - "framework and metadata bytes are exact hard limits for multiple workers"
+    - "per-stage budgets reject slack laundering"
+    - "public harness allocation failure sweep cleans every reachable prefix"
+    - "benchmark constructor allocation sweep reconciles tokens and exact reverse teardown"
+  status: passing
+  since: 0.3.0-m3
+
+- id: AC-003
+  design: docs/user/m3-native-pipeline.md
+  code:
+    - src/pipeline/root.zig
+  tests:
+    - "AC-003 ordered mixed processing preserves prior terminals and short-circuits empty active"
+    - "process contexts reject retyped broader, newly minted, and stale cookies"
+    - "invalid disposition configurations reject before mutating processor callbacks"
+    - "escaped raw batch authority rejects before processor callbacks"
+    - "post-callback work breach revokes batch aliases and caller completes token once"
+  status: passing
+  since: 0.3.0-m3
+
+- id: AC-012
+  design: docs/user/m3-native-pipeline.md
+  code:
+    - src/processor/root.zig
+    - src/pipeline/root.zig
+  tests:
+    - "AC-012 exact limits pass and one-byte excess, overflow, multiplication, and underestimate reject"
+    - "framework and metadata bytes are exact hard limits for multiple workers"
+    - "prepared owner enforces capacity early-deinit stale recycle and repeated cleanup"
+    - "accepted work estimates cover worst case and runtime results stay within partial formula"
+    - "post-callback work breach revokes batch aliases and caller completes token once"
+  status: passing
+  since: 0.3.0-m3
+
+- id: PERF-CORE-001
+  design: docs/internals/modules/pipeline.md
+  code:
+    - src/pipeline/root.zig
+    - bench/micro/m3_static_pipeline.zig
+  tests:
+    - "one-stage direct pipeline prepares instantiates and resolves an empty batch"
+  status: passing-synthetic-regression-only
+  since: 0.3.0-m3
 
 - id: FR-PKT-007
   design: docs/internals/modules/m2-packet-processing.md

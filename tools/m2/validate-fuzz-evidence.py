@@ -15,6 +15,10 @@ SUMMARIES = {
     "parser": ROOT / "evidence/m2/fuzz-parser.json",
     "finalizer": ROOT / "evidence/m2/fuzz-finalizer.json",
 }
+FINAL_GATE_COMMIT = "bf76210a318f15f6ab71e6ffcf1a20f1c0bc9277"
+FINAL_GATE_TREE = "b2609e0020b8a33147ee19e563c7f159039c0beb"
+ACCEPTED_M2_COMMIT = "aaa406adde9cc6663b691599c5ebfbc5c8d936b6"
+ACCEPTED_M2_TREE = "a0b8d91e166cc42ea9fda8eb73b60749e43d9b42"
 
 
 def digest(path: Path) -> str:
@@ -31,7 +35,43 @@ def git(*arguments: str) -> str:
     ).stdout.strip()
 
 
-def validate_hash_records(records: list[dict[str, object]], label: str) -> None:
+def git_blob_digest(commit: str, path: str) -> str:
+    result = subprocess.run(
+        ["git", "show", f"{commit}:{path}"],
+        cwd=ROOT,
+        check=True,
+        stdout=subprocess.PIPE,
+    )
+    return hashlib.sha256(result.stdout).hexdigest()
+
+
+def is_ancestor(older: str, newer: str) -> bool:
+    return subprocess.run(
+        ["git", "merge-base", "--is-ancestor", older, newer],
+        cwd=ROOT,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    ).returncode == 0
+
+
+def validate_squash_bridge(source_commit: str, source_tree: str) -> None:
+    if git("rev-parse", f"{source_commit}^{{tree}}") != source_tree:
+        raise SystemExit("M2 fuzz source commit/tree binding is invalid")
+    if git("rev-parse", f"{FINAL_GATE_COMMIT}^{{tree}}") != FINAL_GATE_TREE:
+        raise SystemExit("M2 pre-squash final-gate anchor is invalid")
+    if not is_ancestor(source_commit, FINAL_GATE_COMMIT):
+        raise SystemExit("M2 fuzz source is not in the accepted pre-squash history")
+    if git("rev-parse", f"{ACCEPTED_M2_COMMIT}^{{tree}}") != ACCEPTED_M2_TREE:
+        raise SystemExit("M2 accepted squash anchor is invalid")
+    if not is_ancestor(ACCEPTED_M2_COMMIT, "HEAD"):
+        raise SystemExit("M2 accepted squash is not an ancestor of HEAD")
+
+
+def validate_hash_records(
+    records: list[dict[str, object]],
+    label: str,
+    source_commit: str,
+) -> None:
     if not records:
         raise SystemExit(f"{label} records must not be empty")
     for record in records:
@@ -40,6 +80,11 @@ def validate_hash_records(records: list[dict[str, object]], label: str) -> None:
             raise SystemExit(f"{label} path is missing: {path.relative_to(ROOT)}")
         if digest(path) != record["sha256"]:
             raise SystemExit(f"{label} hash mismatch: {path.relative_to(ROOT)}")
+        relative = str(record["path"])
+        if git_blob_digest(source_commit, relative) != record["sha256"]:
+            raise SystemExit(f"{label} source-object hash mismatch: {relative}")
+        if git_blob_digest(ACCEPTED_M2_COMMIT, relative) != record["sha256"]:
+            raise SystemExit(f"{label} accepted-squash hash mismatch: {relative}")
 
 
 def main() -> None:
@@ -51,13 +96,7 @@ def main() -> None:
             raise SystemExit(f"{target} summary target/dirty binding is invalid")
         commit = str(summary.get("source_commit"))
         expected_tree = str(summary.get("source_tree"))
-        if git("rev-parse", f"{commit}^{{tree}}") != expected_tree:
-            raise SystemExit(f"{target} source commit/tree binding is invalid")
-        subprocess.run(
-            ["git", "merge-base", "--is-ancestor", commit, "HEAD"],
-            cwd=ROOT,
-            check=True,
-        )
+        validate_squash_bridge(commit, expected_tree)
         tool = summary.get("tool", {})
         settings = summary.get("settings", {})
         result = summary.get("result", {})
@@ -76,17 +115,20 @@ def main() -> None:
             raise SystemExit(f"{target} fuzz settings mismatch")
         if result != {"status": "pass", "saved_crashes": 0, "saved_timeouts": 0}:
             raise SystemExit(f"{target} retained fuzz result is not a clean pass")
-        validate_hash_records(summary.get("sources", []), f"{target} source")
-        validate_hash_records(summary.get("seeds", []), f"{target} seed")
+        validate_hash_records(summary.get("sources", []), f"{target} source", commit)
+        validate_hash_records(summary.get("seeds", []), f"{target} seed", commit)
         dictionary = summary.get("dictionary", {})
-        validate_hash_records([dictionary], f"{target} dictionary")
+        validate_hash_records([dictionary], f"{target} dictionary", commit)
         coverage_hash = str(summary.get("coverage_map_sha256", ""))
         if len(coverage_hash) != 64:
             raise SystemExit(f"{target} coverage-map hash is malformed")
         workflow = summary.get("failure_workflow", {})
         if "--reproduce RAW_INPUT" not in str(workflow.get("reproducer", "")):
             raise SystemExit(f"{target} reproducer workflow is missing")
-    print("M2 retained fuzz summaries passed: commit/tree, source, seed, settings, and results")
+    print(
+        "M2 retained fuzz summaries passed: pre-squash/squash anchors, "
+        "source, seed, settings, and results"
+    )
 
 
 if __name__ == "__main__":

@@ -6,9 +6,199 @@
 
 const std = @import("std");
 const packet = @import("../packet/root.zig");
+const processor = @import("../processor/root.zig");
+const synthetic = @import("../io/synthetic/root.zig");
 
 /// Default deterministic seed for short M1 property runs.
 pub const default_seed: u64 = 0x5341_494e_545f_4d31;
+
+/// One public synthetic packet fixture. Setup copies `bytes`; split offsets
+/// describe deterministic segment boundaries and never escape submission.
+pub const PacketFixture = struct {
+    bytes: []const u8,
+    split_offsets: []const usize = &.{},
+};
+
+/// Resource observations retained by one public harness result.
+pub const HarnessResourceAccounting = struct {
+    prepared_peak_bytes: usize,
+    worker_peak_bytes: usize,
+    metadata_scratch_bytes: usize,
+    hot_path_allocator_calls: usize,
+};
+
+/// One exact synthetic-token completion observation.
+pub const OwnershipCompletion = struct {
+    packet_index: usize,
+    final_state: packet.TokenState,
+};
+
+/// Generates a public single-generation processor harness over the real M3
+/// pipeline and M1/M2 synthetic input/output contracts. It intentionally has
+/// no update, metrics-collection, or event-runtime surface.
+pub fn ProcessorTestHarness(comptime PipelineType: type) type {
+    return struct {
+        allocator: std.mem.Allocator,
+        prepared: *PipelineType.PreparedPipeline,
+        worker: PipelineType.WorkerHandle,
+
+        const Self = @This();
+
+        /// Owned packet bytes, final dispositions, stage/error trace, exact
+        /// token completion, and resource accounting for one submission.
+        pub const TestResult = struct {
+            allocator: std.mem.Allocator,
+            packet_bytes: [packet.max_batch][]u8 = undefined,
+            packet_count: usize = 0,
+            execution: PipelineType.WorkerPipeline.ExecutionResult,
+            ownership: [packet.max_batch]OwnershipCompletion = undefined,
+            resources: HarnessResourceAccounting,
+            origin: packet.InputOrigin,
+            monotonic_time_ns: u64,
+
+            /// Releases only result-owned byte copies.
+            pub fn deinit(self: *TestResult) void {
+                for (self.packet_bytes[0..self.packet_count]) |bytes|
+                    self.allocator.free(bytes);
+                self.* = undefined;
+            }
+        };
+
+        /// Prepares one immutable static generation and instantiates one worker.
+        pub fn init(
+            allocator: std.mem.Allocator,
+            artifacts: [PipelineType.processors.len]?processor.ConfigurationArtifact,
+            capabilities: processor.ApplicationCapabilities,
+            limits: processor.ResourceLimits,
+            worker_descriptor: processor.WorkerDescriptor,
+        ) !Self {
+            const prepared = try PipelineType.prepare(allocator, artifacts, capabilities, limits);
+            errdefer prepared.deinit() catch unreachable;
+            const worker = try PipelineType.instantiate(prepared, worker_descriptor);
+            return .{ .allocator = allocator, .prepared = prepared, .worker = worker };
+        }
+
+        /// Destroys worker state before prepared state.
+        pub fn deinit(self: *Self) void {
+            self.prepared.deinitWorker(&self.worker) catch unreachable;
+            self.prepared.deinit() catch unreachable;
+            self.* = undefined;
+        }
+
+        fn reconcile(slots: []packet.PacketSlot) void {
+            for (slots) |slot| {
+                const token = slot.adapterToken();
+                const state = token.state() catch continue;
+                switch (state) {
+                    .worker_owned => token.returnToInput() catch {},
+                    .output_owned => token.completeOutput() catch {},
+                    .retained => token.completeRetention() catch {},
+                    .input_owned, .returned_to_input, .completed => {},
+                }
+            }
+        }
+
+        /// Runs real synthetic receive, the generated direct pipeline, and real
+        /// synthetic output/completion. All received tokens are reconciled on
+        /// success and on every returned failure.
+        pub fn submit(
+            self: *Self,
+            fixtures: []const PacketFixture,
+            origin: packet.InputOrigin,
+            monotonic_time_ns: u64,
+            input_metadata: PipelineType.InputMetadata,
+            disposition_config: packet.DispositionConfig,
+        ) !TestResult {
+            if (fixtures.len > packet.max_batch) return error.BatchTooLarge;
+            var maximum_length: usize = 1;
+            for (fixtures) |fixture| maximum_length = @max(maximum_length, fixture.bytes.len);
+
+            var input = try synthetic.InputQueue.init(self.allocator, .{
+                .capacity = fixtures.len,
+                .max_packet_length = maximum_length,
+                .zero_length = .allow,
+                .mutable = true,
+                .headroom = 32,
+                .tailroom = 32,
+            }, monotonic_time_ns);
+            defer input.deinit();
+            for (fixtures) |fixture| try input.enqueue(fixture.bytes, fixture.split_offsets);
+
+            var slots: [packet.max_batch]packet.PacketSlot = undefined;
+            const received = try input.receive(&slots, fixtures.len);
+            if (received != fixtures.len) {
+                reconcile(slots[0..received]);
+                return error.IncompleteSyntheticReceive;
+            }
+            var tokens_need_reconcile = true;
+            defer if (tokens_need_reconcile) reconcile(slots[0..received]);
+
+            const owner = try packet.PacketBatchOwner.init(self.allocator);
+            defer owner.deinit();
+            const batch = try owner.begin(origin, slots[0..received]);
+            defer batch.invalidate(owner) catch {};
+
+            const allocation_calls_before = try self.prepared.workerAllocationCount(self.worker);
+            const execution = try self.prepared.processBatch(
+                self.worker,
+                owner,
+                batch,
+                input_metadata,
+                disposition_config,
+                monotonic_time_ns,
+            );
+            const allocation_calls_after = try self.prepared.workerAllocationCount(self.worker);
+            if (allocation_calls_after != allocation_calls_before)
+                return error.HotPathAllocationObserved;
+
+            var result = TestResult{
+                .allocator = self.allocator,
+                .execution = execution,
+                .resources = .{
+                    .prepared_peak_bytes = self.prepared.peakBytes(),
+                    .worker_peak_bytes = try self.prepared.workerPeakBytes(self.worker),
+                    .metadata_scratch_bytes = PipelineType.InputMetadata.scratchBytes(),
+                    .hot_path_allocator_calls = allocation_calls_after - allocation_calls_before,
+                },
+                .origin = origin,
+                .monotonic_time_ns = monotonic_time_ns,
+            };
+            errdefer result.deinit();
+            for (0..received) |index| {
+                const view = try batch.view(owner, index);
+                const length = try view.length(owner);
+                const bytes = try self.allocator.alloc(u8, length);
+                errdefer self.allocator.free(bytes);
+                try view.read(owner, .{ .offset = 0, .len = length }, bytes);
+                result.packet_bytes[index] = bytes;
+                result.packet_count += 1;
+            }
+
+            var output = try synthetic.OutputQueue.init(self.allocator, received);
+            defer output.deinit();
+            for (execution.dispositions.outputs[0..execution.dispositions.output_count]) |group| {
+                for (group.items[0..group.count]) |item|
+                    try output.submitBatch(batch, owner, item.index.raw());
+            }
+            for (execution.dispositions.drops[0..execution.dispositions.drop_count]) |item|
+                try slots[item.index.raw()].adapterToken().returnToInput();
+            for (execution.dispositions.completions[0..execution.dispositions.completion_count]) |item|
+                try slots[item.index.raw()].adapterToken().returnToInput();
+            if (execution.dispositions.retention_count != 0)
+                return error.RetentionUnavailableInM3Harness;
+
+            for (slots[0..received], 0..) |slot, index| {
+                result.ownership[index] = .{
+                    .packet_index = index,
+                    .final_state = try slot.adapterToken().state(),
+                };
+            }
+            try input.verifyCompleted();
+            tokens_need_reconcile = false;
+            return result;
+        }
+    };
+}
 
 /// Seeded pseudo-random source with a bounded human-readable operation trace.
 ///

@@ -1,18 +1,21 @@
 # API overview
 
-Applications import `saint_shield` from `src/root.zig`. The M2 public surface
+Applications import `saint_shield` from `src/root.zig`. The M3 public surface
 provides `foundation` identifiers/budgets/time, `packet` ownership and
 segment-safe views, deterministic `io.synthetic` queues, bounded classic-PCAP
 fixtures under `io.pcap`, bounded parsing, selection/dispositions,
 mutation/finalization, retention, and reproducible seeded traces under
-`testing`.
+`testing`, plus native `processor` declarations and generated `pipeline`
+composition.
 Generated Zig documentation is a symbol index and is not the sole API guide.
 
 The core imports no DPDK type. DPDK compatibility code remains under
 `src/io/dpdk` and is compiled only by the explicit smoke command.
 
-M2 deliberately does not expose native processor descriptors or a static
-pipeline. Those remain gated to M3.
+`ProcessorDescriptor`, `Pipeline`, `PipelineWithInputMetadata`, and
+`ProcessorTestHarness` are the M3 entry points. Generated processor contexts
+expose only declared call-scoped capabilities and never return packet ownership
+authority. See the [M3 native pipeline guide](../user/m3-native-pipeline.md).
 
 M1's first concrete support API is the allocation-free bounded classic-PCAP
 parser and deterministic writer under `saint_shield.io.pcap`. See the

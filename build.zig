@@ -31,6 +31,26 @@ pub fn build(b: *std.Build) void {
     const test_step = b.step("test", "Run cumulative packet and foundation tests");
     test_step.dependOn(&run_root_tests.step);
 
+    const m3_test_module = b.createModule(.{
+        .root_source_file = b.path("test/m3/runtime.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    m3_test_module.addImport("saint_shield", saint_module);
+    const m3_tests = b.addTest(.{ .root_module = m3_test_module });
+    const run_m3_tests = b.addRunArtifact(m3_tests);
+    const m3_test_step = b.step("m3-test", "Run M3 processor, pipeline, resource, and cleanup tests");
+    m3_test_step.dependOn(&run_m3_tests.step);
+    const m3_bench_test_module = b.createModule(.{
+        .root_source_file = b.path("bench/micro/m3_static_pipeline.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    m3_bench_test_module.addImport("saint_shield", saint_module);
+    const m3_bench_tests = b.addTest(.{ .root_module = m3_bench_test_module });
+    const run_m3_bench_tests = b.addRunArtifact(m3_bench_tests);
+    m3_test_step.dependOn(&run_m3_bench_tests.step);
+
     const example_module = b.createModule(.{
         .root_source_file = b.path("examples/static_filter/main.zig"),
         .target = target,
@@ -46,6 +66,8 @@ pub fn build(b: *std.Build) void {
     const run_example = b.addRunArtifact(example);
     const example_step = b.step("example", "Build and run the hardware-free example");
     example_step.dependOn(&run_example.step);
+    const m3_example_step = b.step("m3-example", "Build and run the deterministic three-processor M3 example");
+    m3_example_step.dependOn(&run_example.step);
 
     const bench_module = b.createModule(.{
         .root_source_file = b.path("bench/micro/m0v_smoke.zig"),
@@ -112,6 +134,43 @@ pub fn build(b: *std.Build) void {
     m2_bench_step.dependOn(&run_m2_bench.step);
     m2_bench_step.dependOn(&validate_m2_bench.step);
 
+    const m3_bench_module = b.createModule(.{
+        .root_source_file = b.path("bench/micro/m3_static_pipeline.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    m3_bench_module.addImport("saint_shield", saint_module);
+    const m3_bench = b.addExecutable(.{
+        .name = "m3-static-pipeline-bench",
+        .root_module = m3_bench_module,
+    });
+    m3_bench.root_module.addCSourceFile(.{
+        .file = b.path("bench/micro/cycle_counter.c"),
+        .flags = &.{ "-std=c11", "-Wall", "-Wextra", "-Werror" },
+    });
+    m3_bench.root_module.link_libc = true;
+    const m3_bench_compile_step = b.step(
+        "m3-bench-compile",
+        "Compile the M3 benchmark without executing performance samples",
+    );
+    m3_bench_compile_step.dependOn(&m3_bench.step);
+    const run_m3_bench = b.addRunArtifact(m3_bench);
+    if (b.args) |args| run_m3_bench.addArgs(args);
+    const m3_bench_step = b.step(
+        "m3-bench",
+        "Run M3 static pipeline benchmark samples (synthetic, not capacity)",
+    );
+    m3_bench_step.dependOn(&run_m3_bench.step);
+    addCommandStep(b, "m3-bench-evidence", "Validate retained source-bound M3 benchmark evidence", &.{
+        "python3", "tools/m3/benchmark-evidence.py",
+    });
+    addCommandStep(b, "m3-bench-evidence-self-test", "Run M3 evidence validator negative controls", &.{
+        "python3", "tools/m3/benchmark-evidence.py", "--self-test",
+    });
+    addCommandStep(b, "m3-bench-gate", "Capture and validate seven fresh committed-tree M3 benchmark launches", &.{
+        "python3", "tools/m3/benchmark-gate.py",
+    });
+
     const docs = library.getEmittedDocs();
     const install_docs = b.addInstallDirectory(.{
         .source_dir = docs,
@@ -139,6 +198,23 @@ pub fn build(b: *std.Build) void {
     const install_aarch64 = b.addInstallArtifact(aarch64_library, .{});
     const aarch64_step = b.step("cross-aarch64", "Cross-compile the public library for Linux AArch64");
     aarch64_step.dependOn(&install_aarch64.step);
+
+    const m3_aarch64_example_module = b.createModule(.{
+        .root_source_file = b.path("examples/static_filter/main.zig"),
+        .target = aarch64_target,
+        .optimize = .ReleaseSafe,
+    });
+    m3_aarch64_example_module.addImport("saint_shield", aarch64_module);
+    const m3_aarch64_example = b.addExecutable(.{
+        .name = "saint-shield-static-filter-aarch64",
+        .root_module = m3_aarch64_example_module,
+    });
+    const install_m3_aarch64_example = b.addInstallArtifact(m3_aarch64_example, .{});
+    const m3_aarch64_step = b.step(
+        "m3-cross-aarch64",
+        "ReleaseSafe cross-compile of a concrete valid M3 pipeline",
+    );
+    m3_aarch64_step.dependOn(&install_m3_aarch64_example.step);
 
     addCommandStep(b, "fmt-check", "Check canonical Zig formatting", &.{
         "zig", "fmt", "--check", "build.zig", "src", "examples", "test", "bench",
@@ -188,14 +264,26 @@ pub fn build(b: *std.Build) void {
     addCommandStep(b, "m2-fuzz-evidence", "Validate retained source-bound M2 fuzz summaries", &.{
         "python3", "tools/m2/validate-fuzz-evidence.py",
     });
+    addCommandStep(b, "m3-compile-fail", "Validate M3 processor-specific Zig compile failures", &.{
+        "python3", "tools/m3/compile-fail.py",
+    });
+    addCommandStep(b, "m3-coverage", "Validate the cumulative M3 requirement and evidence map", &.{
+        "python3", "tools/m3/validate-coverage.py",
+    });
+    addCommandStep(b, "m3-version-consistency", "Validate M3 version and preserved M1/M2 provenance", &.{
+        "python3", "tools/m3/validate-version.py",
+    });
     addCommandStep(b, "ci-m0-v", "Run the independently invocable M0-V CI gate", &.{
         "sh", "tools/m0/ci.sh",
     });
     addCommandStep(b, "ci-m1", "Run the independently invocable cumulative M1 CI gate", &.{
         "sh", "tools/m1/ci.sh",
     });
-    addCommandStep(b, "ci", "Run the complete cumulative hardware-free M2 CI gate", &.{
+    addCommandStep(b, "ci-m2", "Run the independently invocable cumulative M2 CI gate", &.{
         "sh", "tools/m2/ci.sh",
+    });
+    addCommandStep(b, "ci", "Run the complete cumulative hardware-free M3 CI gate", &.{
+        "sh", "tools/m3/ci.sh",
     });
 }
 

@@ -30,6 +30,11 @@ SOURCE_PATHS = [
     ROOT / "tools/m2/benchmark-evidence.py",
     ROOT / "build.zig",
 ]
+FINAL_GATE_COMMIT = "bf76210a318f15f6ab71e6ffcf1a20f1c0bc9277"
+FINAL_GATE_TREE = "b2609e0020b8a33147ee19e563c7f159039c0beb"
+ACCEPTED_M2_COMMIT = "aaa406adde9cc6663b691599c5ebfbc5c8d936b6"
+ACCEPTED_M2_TREE = "a0b8d91e166cc42ea9fda8eb73b60749e43d9b42"
+EXPECTED_EVOLVED_PATHS = {"build.zig", "tools/m2/benchmark-evidence.py"}
 SETTINGS_PATTERN = re.compile(
     r"^settings iterations=(\d+) warmup_iterations=(\d+) repetitions=(\d+) "
     r"claim=synthetic-regression-not-capacity$"
@@ -56,6 +61,38 @@ def git(*arguments: str) -> str:
         text=True,
         stdout=subprocess.PIPE,
     ).stdout.strip()
+
+
+def git_blob_digest(commit: str, path: str) -> str:
+    result = subprocess.run(
+        ["git", "show", f"{commit}:{path}"],
+        cwd=ROOT,
+        check=True,
+        stdout=subprocess.PIPE,
+    )
+    return digest_bytes(result.stdout)
+
+
+def is_ancestor(older: str, newer: str) -> bool:
+    return subprocess.run(
+        ["git", "merge-base", "--is-ancestor", older, newer],
+        cwd=ROOT,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    ).returncode == 0
+
+
+def validate_squash_bridge(source_commit: str, source_tree: str) -> None:
+    if git("rev-parse", f"{source_commit}^{{tree}}") != source_tree:
+        raise SystemExit("M2 benchmark commit/tree binding is invalid")
+    if git("rev-parse", f"{FINAL_GATE_COMMIT}^{{tree}}") != FINAL_GATE_TREE:
+        raise SystemExit("M2 pre-squash final-gate anchor is invalid")
+    if not is_ancestor(source_commit, FINAL_GATE_COMMIT):
+        raise SystemExit("M2 benchmark source is not in the accepted pre-squash history")
+    if git("rev-parse", f"{ACCEPTED_M2_COMMIT}^{{tree}}") != ACCEPTED_M2_TREE:
+        raise SystemExit("M2 accepted squash anchor is invalid")
+    if not is_ancestor(ACCEPTED_M2_COMMIT, "HEAD"):
+        raise SystemExit("M2 accepted squash is not an ancestor of HEAD")
 
 
 def fixture_bytes() -> bytes:
@@ -269,15 +306,23 @@ def capture(output_path: Path) -> None:
     )
 
 
-def validate_hash_records(records: object) -> None:
+def validate_hash_records(records: object, source_commit: str) -> None:
     if not isinstance(records, list) or not records:
         raise SystemExit("benchmark source hash records must not be empty")
     for record in records:
         if not isinstance(record, dict):
             raise SystemExit("benchmark source hash record is malformed")
-        path = ROOT / str(record.get("path", ""))
-        if not path.is_file() or digest(path) != record.get("sha256"):
-            raise SystemExit(f"benchmark source hash mismatch: {path}")
+        relative = str(record.get("path", ""))
+        expected = record.get("sha256")
+        path = ROOT / relative
+        if relative not in EXPECTED_EVOLVED_PATHS and (
+            not path.is_file() or digest(path) != expected
+        ):
+            raise SystemExit(f"benchmark current source hash mismatch: {path}")
+        if git_blob_digest(source_commit, relative) != expected:
+            raise SystemExit(f"benchmark source-object hash mismatch: {relative}")
+        if git_blob_digest(ACCEPTED_M2_COMMIT, relative) != expected:
+            raise SystemExit(f"benchmark accepted-squash hash mismatch: {relative}")
 
 
 def validate() -> None:
@@ -287,9 +332,7 @@ def validate() -> None:
     commit = str(artifact.get("git_commit", ""))
     resources = artifact.get("application", {}).get("resources", {})
     source_tree = str(resources.get("source_tree", ""))
-    if git("rev-parse", f"{commit}^{{tree}}") != source_tree:
-        raise SystemExit("M2 benchmark commit/tree binding is invalid")
-    subprocess.run(["git", "merge-base", "--is-ancestor", commit, "HEAD"], cwd=ROOT, check=True)
+    validate_squash_bridge(commit, source_tree)
     if artifact.get("environment") != str(ENVIRONMENT.relative_to(ROOT)):
         raise SystemExit("M2 benchmark environment path is invalid")
     if resources.get("environment_sha256") != digest(ENVIRONMENT):
@@ -299,7 +342,7 @@ def validate() -> None:
         raise SystemExit("M2 benchmark fixture hash is invalid")
     if artifact.get("application", {}).get("generation_digest") != fixture_hash:
         raise SystemExit("M2 benchmark generation digest is invalid")
-    validate_hash_records(resources.get("sources"))
+    validate_hash_records(resources.get("sources"), commit)
     if artifact.get("build", {}).get("zig") != "0.16.0" or artifact.get("build", {}).get("mode") != "ReleaseFast":
         raise SystemExit("M2 benchmark build binding is invalid")
     methodology = artifact.get("methodology", {})
@@ -351,8 +394,9 @@ def validate() -> None:
     if artifact.get("valid") is not True or artifact.get("invalid_reason") is not None:
         raise SystemExit("M2 benchmark retained result is not a valid regression sample")
     print(
-        "M2 retained benchmark passed: clean commit/tree, environment/fixture/source hashes, "
-        "warmup, 30 raw samples, medians, and non-capacity scope"
+        "M2 retained benchmark passed: pre-squash/squash anchors, "
+        "environment/fixture/source hashes, warmup, 30 raw samples, medians, "
+        "and non-capacity scope"
     )
 
 

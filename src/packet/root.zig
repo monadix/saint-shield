@@ -1335,6 +1335,7 @@ pub const PacketBatch = enum(HandleInt) {
         BatchReleased,
         Bounds,
         AccessRevoked,
+        OutstandingBorrow,
     };
 
     fn ensureLive(
@@ -1359,6 +1360,18 @@ pub const PacketBatch = enum(HandleInt) {
     /// Returns the configured input origin while this generation is live.
     pub fn origin(self: PacketBatch, owner: *PacketBatchOwner) Error!InputOrigin {
         return (try self.ensureLive(owner)).origin;
+    }
+
+    /// Proves that generation invalidation can revoke every issued packet
+    /// authority. Escaped raw slices and adapter tokens are non-revocable and
+    /// therefore reject mutation-capable pipeline entry before callbacks.
+    pub fn requireRevocable(
+        self: PacketBatch,
+        owner_handle: *PacketBatchOwner,
+    ) Error!void {
+        const owner = try self.ensureLive(owner_handle);
+        for (owner.nonrevocable_access_issued[0..owner.slot_count]) |issued|
+            if (issued) return error.OutstandingBorrow;
     }
 
     /// Creates an opaque read-only view valid until this generation ends.
@@ -3070,6 +3083,38 @@ pub const DispositionConfig = struct {
     outputs: []const OutputId,
     default_output: ?OutputId,
     continue_policy: ContinuePolicy,
+
+    /// Structural configuration errors detected without consulting live batch
+    /// or disposition state.
+    pub const Error = error{ TooManyOutputs, DuplicateOutput, UnknownOutput, MissingDefaultOutput };
+
+    /// Returns whether the configured routing table contains one output.
+    pub fn containsOutput(self: DispositionConfig, output: OutputId) bool {
+        for (self.outputs) |candidate|
+            if (candidate.raw() == output.raw()) return true;
+        return false;
+    }
+
+    /// Validates the complete bounded routing table without packet effects.
+    /// Pipeline assembly adds generated/application capability checks before
+    /// invoking any processor callback.
+    pub fn validate(self: DispositionConfig) Error!void {
+        if (self.outputs.len > DispositionGroups.max_outputs) return error.TooManyOutputs;
+        for (self.outputs, 0..) |output, index| {
+            for (self.outputs[0..index]) |earlier|
+                if (earlier.raw() == output.raw()) return error.DuplicateOutput;
+        }
+        if (self.default_output) |output|
+            if (!self.containsOutput(output)) return error.UnknownOutput;
+        switch (self.continue_policy) {
+            .accept => |maybe_output| {
+                const output = maybe_output orelse self.default_output orelse
+                    return error.MissingDefaultOutput;
+                if (!self.containsOutput(output)) return error.UnknownOutput;
+            },
+            .drop, .complete => {},
+        }
+    }
 };
 
 /// One receive-ordered accepted or redirected output item.
@@ -3100,7 +3145,7 @@ pub const DispositionGroups = struct {
     retention_count: usize = 0,
 
     /// Resolution errors.
-    pub const Error = error{ TooManyOutputs, DuplicateOutput, UnknownOutput, MissingDefaultOutput };
+    pub const Error = DispositionConfig.Error;
 
     fn findOutput(self: *DispositionGroups, output: OutputId) ?*OutputGroup {
         for (self.outputs[0..self.output_count]) |*group|
@@ -3126,14 +3171,11 @@ pub const DispositionGroups = struct {
         config: DispositionConfig,
     ) (Error || DispositionWriter.Error)!DispositionGroups {
         const state = try writer.checkedState(owner);
-        if (config.outputs.len > max_outputs) return error.TooManyOutputs;
+        try config.validate();
         var result = DispositionGroups{};
         result.output_count = config.outputs.len;
-        for (config.outputs, 0..) |output, index| {
-            for (config.outputs[0..index]) |earlier|
-                if (earlier.raw() == output.raw()) return error.DuplicateOutput;
+        for (config.outputs, 0..) |output, index|
             result.outputs[index] = .{ .output = output };
-        }
 
         for (state.values[0..state.batch_len], 0..) |recorded, raw_index| {
             const index = PacketIndex.init(raw_index, state.batch_len) catch unreachable;
