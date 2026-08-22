@@ -2,8 +2,8 @@
 
 Date opened: 2026-08-13
 
-Milestone status: Complete; local integration remediation is addressed pending
-independent closure
+Milestone status: Complete; M3-INTEGRATION-001 is independently closed and
+local integration remains incomplete
 
 Scope: hardware-free M3 native processor contract, static pipeline, public
 synthetic harness, and deterministic example
@@ -879,16 +879,19 @@ gate evidence are recorded in `evidence/m3/VERIFICATION.md`.
 
 ## M3-INTEGRATION-001: Retained evidence validator rejects the accepted squash topology
 
-- Status: `addressed`
+- Status: `closed`
 - Status history: opened after the exact post-integration failure on local
   `main`; moved to addressed only after the bounded branch remediation and
-  focused checks below passed. Independent closure remains pending.
+  focused checks below passed; independently closed at the exact committed
+  checkpoint recorded below.
 - Severity: High
 - Requirement/invariant/gate: source-bound benchmark evidence integrity,
   PERF-CORE-001, and the required post-integration cumulative M3 gate over a
   tree-identical accepted squash.
 - Discoverer: `m3_final_gate` during the post-integration canonical gate
 - Assigned writer: `m3_integration_writer`
+- Assigned independent closure reviewer: `m3_squash_review`, acting as the
+  main-session named successor for the integration-boundary finding
 - Concrete evidence: local `main` squash commit
   `e140ed246a3ba71a6a606442589a3e654b659aed`, tree
   `481e1e226989ab51268d7774d8395708918791f9`, was tree-identical to accepted
@@ -938,7 +941,22 @@ gate evidence are recorded in `evidence/m3/VERIFICATION.md`.
   `evidence/m3/VERIFICATION.md`. The accepted artifact bytes are unchanged and
   no cumulative gate, integration retry, branch deletion, or remote mutation
   was performed during addressing.
-- Closure result: pending independent discoverer or named-successor review of
-  the exact committed remediation. M3 remains accepted, but local integration
-  is incomplete until closure, re-integration, and a passing post-integration
-  exact-tree cumulative gate.
+- Closure result: closed by assigned independent reviewer `m3_squash_review`
+  at exact clean non-WIP tip
+  `a6302e3fc1b99c5b21c39c4e1f841486de5be531`, tree
+  `7e26c7c607122fba72d6fc5c6c70c2ee4f04acaa`. The reviewer audited artifact
+  source `332aa44` to final gate `9c008e5` to pre-squash tip `f07ab6e`
+  ancestry, pre-squash/squash `e140ed2` tree identity, and all 13 bound paths
+  across the anchors plus current non-validator bytes, including non-exempt
+  `build.zig`. Hostile probes rejected an unrelated base/source/gate, wrong
+  tree/source, worktree substitution, retained-as-fresh use, an unknown mode,
+  and forged validator hash/statistics. Focused Nix validation passed retained
+  evidence, fresh/retained positives, 15 negatives, schemas, 51-claim coverage,
+  version consistency, documentation and 33 links; both immutable manifests,
+  Python compilation, diff, and clean-status checks also passed after the
+  known Nix fetcher-lock restriction was retried with narrow scope. The
+  artifact remained SHA-256
+  `6437d1d35cf6f19603fbf6b54c5f8ff371e23a94ad8fdd5a06192639958b0cbf`.
+  No new material finding was reported, and the full exact-tree gate is
+  unlocked. M3 remains accepted; local integration remains incomplete until
+  corrected re-integration and the post-integration cumulative gate pass.

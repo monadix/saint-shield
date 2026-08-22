@@ -9,8 +9,8 @@ Status: Complete. All review findings through M3-GATE-001 are closed, the
 exact-context authority-return inventory is acknowledged, the current-source
 retained benchmark passes, the independent final exact-tree retry passed, and
 the main session accepted M3 at exact gate tip/tree `9c008e5`/`18d2c7d`.
-Post-acceptance M3-INTEGRATION-001 is addressed pending independent closure;
-local squash integration is incomplete.
+Post-acceptance M3-INTEGRATION-001 is independently closed at exact tip/tree
+`a6302e3`/`7e26c7c`; local squash integration is incomplete.
 
 Environment label: synthetic/virtual regression only; no production-capacity
 claim
@@ -626,8 +626,10 @@ branch deletion.
 
 - All original API, resource, performance, M3-FRESH-001/002, M3-FRESH2-001,
   M3-FINAL-001, and M3-GATE-001 findings are closed by their discovering
-  reviewers/verifier. Post-acceptance M3-INTEGRATION-001 is addressed pending
-  independent closure.
+  reviewers/verifier. Assigned independent reviewer `m3_squash_review` closed
+  post-acceptance M3-INTEGRATION-001 at exact clean non-WIP tip/tree
+  `a6302e3`/`7e26c7c` with no new material finding; the full exact-tree gate is
+  unlocked.
   `m3_api_review` acknowledged the exact-context authority-return inventory at
   exact corrected source commit/tree `1dd6614`/`11d25fb`.
 - Evidence is synthetic/virtual and host-local. It makes no physical-NIC,
@@ -643,6 +645,6 @@ branch deletion.
   independent final clean committed exact-tree verification, and main-session
   acceptance pass. The first local squash is tree-identical but its
   post-integration gate failed at the pre-bridge retained ancestry check;
-  integration remains incomplete pending M3-INTEGRATION-001 closure,
-  re-integration, and a full post-integration gate. M0-H remains mandatory
-  before M4 can begin.
+  M3-INTEGRATION-001 is closed, while integration remains incomplete pending
+  corrected re-integration and a full post-integration gate. M0-H remains
+  mandatory before M4 can begin.
