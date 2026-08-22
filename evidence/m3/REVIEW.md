@@ -2,7 +2,8 @@
 
 Date opened: 2026-08-13
 
-Milestone status: Complete
+Milestone status: Complete; local integration remediation is addressed pending
+independent closure
 
 Scope: hardware-free M3 native processor contract, static pipeline, public
 synthetic harness, and deterministic example
@@ -88,6 +89,7 @@ rejected with no new token authority.
 | M3-FRESH-001 | Complete routing validation and raw-authority rejection occur before callbacks; one post-callback error defer invalidates the exact generation, and direct plus public-harness tests prove stale/recycled alias rejection and exact token reconciliation in all modes. |
 | M3-FRESH-002 | Benchmark construction registers every ownership unwind immediately, reconciles transferred tokens on error, tears workers/prepared owners down in exact reverse order, and passes an every-index failing-allocation sweep in all modes. |
 | M3-FINAL-001 | The public rolling descriptor binding is removed. Invocation authentication uses a package-private exact generated context-type marker, while fixed per-stage installed rights intersect the exact descriptor with application authority and every applicable method rechecks packet, disposition, raw/time, output, and metadata rights. Exact packet/output and solved metadata collision regressions, two-stage broad-application isolation, same/new/stale/cross-thread/exhaustion tests, and the expanded public-identity compile failure pass. |
+| M3-INTEGRATION-001 | Retained validation now has separate strict fresh-current-HEAD and retained-squash-bridge modes. The bridge authenticates exact source, final-gate, pre-squash, and squash commit/tree anchors; source-to-gate-to-pre-squash ancestry; pre-squash/squash tree identity; exactly one accepted branch/main topology; every recorded source blob at the historical, pre-squash, and squash anchors; and current worktree bytes except the sole evolved validator self-path. Positive branch/integrated modes and forged topology, source, validator-self-path, and statistical controls pass without changing the artifact. |
 
 Applicable second-remediation source checks and exact results are recorded in
 `evidence/m3/VERIFICATION.md`. Closed findings retain their discoverer closure;
@@ -874,3 +876,69 @@ gate evidence are recorded in `evidence/m3/VERIFICATION.md`.
   diff check, and proved unchanged commit/tree plus clean ordinary status. The
   first verifier attempt remains recorded above as failed; its recovery is not
   used to reclassify that attempt. No additional material finding was reported.
+
+## M3-INTEGRATION-001: Retained evidence validator rejects the accepted squash topology
+
+- Status: `addressed`
+- Status history: opened after the exact post-integration failure on local
+  `main`; moved to addressed only after the bounded branch remediation and
+  focused checks below passed. Independent closure remains pending.
+- Severity: High
+- Requirement/invariant/gate: source-bound benchmark evidence integrity,
+  PERF-CORE-001, and the required post-integration cumulative M3 gate over a
+  tree-identical accepted squash.
+- Discoverer: `m3_final_gate` during the post-integration canonical gate
+- Assigned writer: `m3_integration_writer`
+- Concrete evidence: local `main` squash commit
+  `e140ed246a3ba71a6a606442589a3e654b659aed`, tree
+  `481e1e226989ab51268d7774d8395708918791f9`, was tree-identical to accepted
+  pre-squash tip `f07ab6ed5154e224785a8913f6c8a22bfa384111`. Canonical
+  `nix develop --command zig build ci` passed every cumulative M0-V through M3
+  check through the fresh benchmark and passed PERF-CORE-001 at fresh
+  direct4/direct0 packet-rate ratios `0.996402` for batch 32 and `1.001114`
+  for batch 64. It then failed only retained M3 evidence because artifact
+  source commit `332aa4483d859e28976016da8c6c7990581add48` is not an
+  ancestor of the new squash history. The retained artifact remained unchanged
+  at SHA-256
+  `6437d1d35cf6f19603fbf6b54c5f8ff371e23a94ad8fdd5a06192639958b0cbf`.
+- Expected behavior: retained validation survives the approved squash only
+  when exact accepted historical anchors, ancestry, tree identity, topology,
+  recorded source blobs, and current non-validator source bytes all prove the
+  accepted content. Fresh generation remains bound strictly to exact current
+  `HEAD`; no arbitrary ancestry, source substitution, or artifact refresh is
+  admitted.
+- Observed behavior: the pre-integration validator required the historical
+  source commit to be an ancestor of current `HEAD`. A content-identical squash
+  necessarily breaks that ancestry even though the accepted branch tree and
+  local squash tree are equal, so the required post-integration gate could not
+  complete.
+- Reproduction and seed/trace: from exact local squash `e140ed2`/`481e1e2`,
+  run `nix develop --command zig build ci`. The fresh benchmark is randomized
+  and reported the ratios above; the retained-validator ancestry rejection is
+  deterministic and occurs after all preceding checks pass.
+- Failing layer: retained benchmark evidence topology validation at the local
+  squash-integration boundary; not the processor runtime, accepted artifact,
+  schema, benchmark threshold, specification, or accepted final gate.
+- Bounded remediation/rechecks: distinguish strict fresh-current-HEAD
+  validation from an exact retained-squash bridge. The retained path pins and
+  resolves artifact source `332aa44`/`1166318`, accepted final gate
+  `9c008e5`/`18d2c7d`, pre-squash tip `f07ab6e`/`481e1e2`, and squash
+  `e140ed2`/`481e1e2`; proves source-to-gate-to-pre-squash ancestry, exact tree
+  identity, and exactly one branch/main topology; verifies all recorded source
+  blobs at the source, pre-squash, and squash anchors; and requires current
+  worktree equality except only `tools/m3/benchmark-evidence.py`. Do not exempt
+  `build.zig`, weaken statistical checks, regenerate the artifact, change the
+  schema/build/generator/CI surface, or alter product authority.
+- Addressing evidence: retained validation passes on the accepted pre-squash
+  branch; self-tests pass fresh-current-HEAD and explicit pre-squash/integrated
+  positive modes while rejecting forged commit/tree, topology, source,
+  validator-self-path, and statistical evidence. Focused retained evidence,
+  self-test, schemas, coverage, version, documentation/link, Python compile,
+  both immutable manifests, diff, and status checks are recorded in
+  `evidence/m3/VERIFICATION.md`. The accepted artifact bytes are unchanged and
+  no cumulative gate, integration retry, branch deletion, or remote mutation
+  was performed during addressing.
+- Closure result: pending independent discoverer or named-successor review of
+  the exact committed remediation. M3 remains accepted, but local integration
+  is incomplete until closure, re-integration, and a passing post-integration
+  exact-tree cumulative gate.

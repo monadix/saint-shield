@@ -9,6 +9,8 @@ Status: Complete. All review findings through M3-GATE-001 are closed, the
 exact-context authority-return inventory is acknowledged, the current-source
 retained benchmark passes, the independent final exact-tree retry passed, and
 the main session accepted M3 at exact gate tip/tree `9c008e5`/`18d2c7d`.
+Post-acceptance M3-INTEGRATION-001 is addressed pending independent closure;
+local squash integration is incomplete.
 
 Environment label: synthetic/virtual regression only; no production-capacity
 claim
@@ -563,11 +565,69 @@ and marked M3 complete. The acceptance-only record changes no product, tool,
 build, schema, artifact, specification, or authority input and therefore does
 not require another full gate.
 
+## Post-integration gate failure and squash-bridge checkpoint
+
+The authorized local squash produced `main` commit
+`e140ed246a3ba71a6a606442589a3e654b659aed`, tree
+`481e1e226989ab51268d7774d8395708918791f9`, exactly equal to retained
+pre-squash branch tip/tree
+`f07ab6ed5154e224785a8913f6c8a22bfa384111`/`481e1e226989ab51268d7774d8395708918791f9`.
+Both immutable manifests passed. The post-integration canonical
+`nix develop --command zig build ci` ran for approximately 413 seconds and
+passed every cumulative M0-V through M3 check through the fresh M3 benchmark.
+The fresh direct4/direct0 packet-rate ratios passed PERF-CORE-001 at `0.996402`
+for batch 32 and `1.001114` for batch 64. The gate then failed retained M3
+evidence because historical artifact source `332aa4483d859e28976016da8c6c7990581add48`
+was no longer an ancestor of squash-history `HEAD`. The accepted retained
+artifact did not change and remains SHA-256
+`6437d1d35cf6f19603fbf6b54c5f8ff371e23a94ad8fdd5a06192639958b0cbf`.
+This failed post-integration attempt remains failed; it is not evidence of a
+completed local integration and does not revoke the earlier accepted M3 gate.
+
+At main-session direction, the sole writer resumed retained `milestone/m3` to
+address M3-INTEGRATION-001 without regenerating the artifact. Fresh generation
+now uses a strict exact-current-HEAD mode. Retained validation uses a separate
+fixed squash bridge that proves exact artifact-source, final-gate, pre-squash,
+and squash anchors; source-to-gate-to-pre-squash ancestry; pre-squash/squash
+tree identity; exactly one accepted branch or integrated-main topology; and
+historical/pre-squash/squash blob equality for every recorded source. Current
+worktree equality remains mandatory for the environment and every source
+except the sole evolved validator path `tools/m3/benchmark-evidence.py`;
+`build.zig` is not exempt. The self-test covers both positive topology modes
+and rejects forged topology, source, validator-self-path, and statistical
+evidence.
+
+The focused addressing checkpoint passed:
+
+```sh
+nix develop --command zig build m3-bench-evidence \
+  m3-bench-evidence-self-test schemas m3-coverage \
+  m3-version-consistency docs-check
+nix develop --command python3 -m py_compile tools/m3/benchmark-evidence.py
+cd planning/specification/l4-protection-framework-technical-plan
+sha256sum -c MANIFEST.sha256
+cd source-requirements
+sha256sum -c MANIFEST.sha256
+cd ../../../..
+git diff --check
+```
+
+Retained validation passed on the branch topology. The self-test passed
+fresh-current-HEAD and retained branch/integrated positive controls and 15
+negative controls. Schemas, 51-claim cumulative coverage, version consistency,
+authored documentation and 33 local links, Python compilation, both immutable
+manifests, and diff checks passed. The initial sandboxed Nix attempt hit the
+known user-cache fetcher-lock read-only error; the same focused command passed
+with narrowly scoped execution outside that cache restriction. This checkpoint
+does not run cumulative CI, retry integration, close the finding, or authorize
+branch deletion.
+
 ## Findings and limitations
 
 - All original API, resource, performance, M3-FRESH-001/002, M3-FRESH2-001,
   M3-FINAL-001, and M3-GATE-001 findings are closed by their discovering
-  reviewers/verifier.
+  reviewers/verifier. Post-acceptance M3-INTEGRATION-001 is addressed pending
+  independent closure.
   `m3_api_review` acknowledged the exact-context authority-return inventory at
   exact corrected source commit/tree `1dd6614`/`11d25fb`.
 - Evidence is synthetic/virtual and host-local. It makes no physical-NIC,
@@ -581,5 +641,8 @@ not require another full gate.
   runtime, sources, production adapters, or policy executor.
 - The current-source retained artifact, mandatory fresh full-diff review,
   independent final clean committed exact-tree verification, and main-session
-  acceptance pass. Local integration remains pending separate main-session
-  direction. M0-H remains mandatory before M4 can begin.
+  acceptance pass. The first local squash is tree-identical but its
+  post-integration gate failed at the pre-bridge retained ancestry check;
+  integration remains incomplete pending M3-INTEGRATION-001 closure,
+  re-integration, and a full post-integration gate. M0-H remains mandatory
+  before M4 can begin.

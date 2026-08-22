@@ -50,6 +50,17 @@ INDEPENDENT_RUNS = 7
 SAMPLES_PER_RUN = 5
 SAMPLE_COUNT = INDEPENDENT_RUNS * SAMPLES_PER_RUN
 THRESHOLD = 0.95
+RETAINED_SOURCE_COMMIT = "332aa4483d859e28976016da8c6c7990581add48"
+RETAINED_SOURCE_TREE = "11663183dd90abb65cd4e2b964b0e76f9c2c963a"
+FINAL_GATE_COMMIT = "9c008e59243d148bcf4f85efcf8fd20f8d6ea4af"
+FINAL_GATE_TREE = "18d2c7d4246775e69573c2ed98c6824038d7b7cd"
+PRE_SQUASH_TIP = "f07ab6ed5154e224785a8913f6c8a22bfa384111"
+PRE_SQUASH_TREE = "481e1e226989ab51268d7774d8395708918791f9"
+SQUASH_COMMIT = "e140ed246a3ba71a6a606442589a3e654b659aed"
+SQUASH_TREE = "481e1e226989ab51268d7774d8395708918791f9"
+EVOLVED_RETAINED_PATHS = {"tools/m3/benchmark-evidence.py"}
+FRESH_MODE = "fresh-current-head"
+RETAINED_MODE = "retained-squash-bridge"
 NS_PER_PACKET_ABS_TOLERANCE = 0.00000051
 CYCLES_PER_PACKET_ABS_TOLERANCE = 0.00000051
 PACKET_RATE_ABS_TOLERANCE = 0.00051
@@ -86,6 +97,51 @@ def git(*args: str) -> str:
 
 def object_bytes(commit: str, path: str) -> bytes:
     return subprocess.check_output(["git", "show", f"{commit}:{path}"], cwd=ROOT)
+
+
+def is_ancestor(older: str, newer: str) -> bool:
+    return subprocess.run(
+        ["git", "merge-base", "--is-ancestor", older, newer],
+        cwd=ROOT,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        check=False,
+    ).returncode == 0
+
+
+def exact_tree(commit: str, expected_tree: str, label: str) -> str:
+    try:
+        resolved = git("rev-parse", f"{commit}^{{commit}}")
+        tree = git("rev-parse", f"{commit}^{{tree}}")
+    except subprocess.CalledProcessError as error:
+        raise ValueError(f"{label} commit is missing") from error
+    if resolved != commit or tree != expected_tree:
+        raise ValueError(f"{label} commit/tree anchor is invalid")
+    return tree
+
+
+def retained_topology(head: str) -> str:
+    on_pre_squash_line = is_ancestor(PRE_SQUASH_TIP, head)
+    on_integrated_line = is_ancestor(SQUASH_COMMIT, head)
+    if on_pre_squash_line == on_integrated_line:
+        raise ValueError("HEAD is not exactly one accepted M3 branch or squash topology")
+    return "pre-squash-branch" if on_pre_squash_line else "integrated-main"
+
+
+def validate_retained_bridge(commit: str, source_tree: str, head: str) -> str:
+    if commit != RETAINED_SOURCE_COMMIT or source_tree != RETAINED_SOURCE_TREE:
+        raise ValueError("retained source commit/tree binding is not the accepted M3 artifact source")
+    exact_tree(RETAINED_SOURCE_COMMIT, RETAINED_SOURCE_TREE, "M3 retained source")
+    exact_tree(FINAL_GATE_COMMIT, FINAL_GATE_TREE, "M3 final gate")
+    exact_tree(PRE_SQUASH_TIP, PRE_SQUASH_TREE, "M3 pre-squash tip")
+    exact_tree(SQUASH_COMMIT, SQUASH_TREE, "M3 squash")
+    if not is_ancestor(RETAINED_SOURCE_COMMIT, FINAL_GATE_COMMIT):
+        raise ValueError("retained source is not in the accepted final-gate history")
+    if not is_ancestor(FINAL_GATE_COMMIT, PRE_SQUASH_TIP):
+        raise ValueError("final gate is not in the accepted pre-squash history")
+    if PRE_SQUASH_TREE != SQUASH_TREE:
+        raise ValueError("accepted pre-squash and squash trees differ")
+    return retained_topology(head)
 
 
 def generation_digest() -> str:
@@ -311,6 +367,7 @@ def validate_document(
     path: pathlib.Path,
     check_schema: bool = True,
     source_from_worktree: bool = False,
+    mode: str = RETAINED_MODE,
 ) -> None:
     if check_schema:
         schema_check(path)
@@ -322,26 +379,45 @@ def validate_document(
     commit = document["git_commit"]
     if resources["source_commit"] != commit:
         raise ValueError("source commit mismatch")
-    try:
-        resolved_commit = git("rev-parse", f"{commit}^{{commit}}")
-        tree = git("rev-parse", f"{commit}^{{tree}}")
-        subprocess.run(["git", "merge-base", "--is-ancestor", resolved_commit, "HEAD"], cwd=ROOT, check=True)
-    except subprocess.CalledProcessError as error:
-        raise ValueError("source commit is missing or not an ancestor of HEAD") from error
-    if resolved_commit != commit or resources["source_tree"] != tree:
-        raise ValueError("commit/tree binding mismatch")
+    if mode == FRESH_MODE:
+        head = git("rev-parse", "HEAD")
+        head_tree = git("rev-parse", "HEAD^{tree}")
+        if commit != head or resources["source_tree"] != head_tree:
+            raise ValueError("fresh evidence must bind the exact current HEAD commit/tree")
+        exact_tree(commit, head_tree, "fresh M3 source")
+    elif mode == RETAINED_MODE:
+        if source_from_worktree:
+            raise ValueError("retained validation cannot substitute worktree bytes for historical objects")
+        validate_retained_bridge(commit, resources["source_tree"], git("rev-parse", "HEAD"))
+    else:
+        raise ValueError(f"unknown M3 benchmark validation mode: {mode}")
     if document["application"]["generation_digest"] != generation_digest():
         raise ValueError("generation digest mismatch")
     if resources["raw_output_sha256"] != digest_bytes(resources["raw_output"].encode()):
         raise ValueError("raw output hash mismatch")
     read_source = (lambda source_path: (ROOT / source_path).read_bytes()) if source_from_worktree else (lambda source_path: object_bytes(commit, source_path))
-    if resources["environment_sha256"] != digest_bytes(read_source(ENVIRONMENT)):
+    environment_sha256 = resources["environment_sha256"]
+    if environment_sha256 != digest_bytes(read_source(ENVIRONMENT)):
         raise ValueError("environment hash mismatch")
     if [item["path"] for item in resources["sources"]] != SOURCES or document["raw_files"] != SOURCES:
         raise ValueError("benchmark source list is incomplete or reordered")
     for source in resources["sources"]:
         if source["sha256"] != digest_bytes(read_source(source["path"])):
             raise ValueError(f"source hash mismatch: {source['path']}")
+    if mode == RETAINED_MODE:
+        for anchor, label in ((PRE_SQUASH_TIP, "pre-squash"), (SQUASH_COMMIT, "squash")):
+            if environment_sha256 != digest_bytes(object_bytes(anchor, ENVIRONMENT)):
+                raise ValueError(f"environment hash mismatch at {label} anchor")
+            for source in resources["sources"]:
+                if source["sha256"] != digest_bytes(object_bytes(anchor, source["path"])):
+                    raise ValueError(f"source hash mismatch at {label} anchor: {source['path']}")
+        if environment_sha256 != digest_bytes((ROOT / ENVIRONMENT).read_bytes()):
+            raise ValueError("current worktree environment hash differs from retained evidence")
+        for source in resources["sources"]:
+            if source["path"] in EVOLVED_RETAINED_PATHS:
+                continue
+            if source["sha256"] != digest_bytes((ROOT / source["path"]).read_bytes()):
+                raise ValueError(f"current worktree source hash differs from retained evidence: {source['path']}")
     grouped = parse_raw(resources["raw_output"])
     expected_batches, expected_runs = summarize(grouped)
     perf = document["result"]["perf"]
@@ -363,7 +439,7 @@ def generate(raw_path: pathlib.Path, output: pathlib.Path) -> None:
     raw = raw_path.read_text(encoding="utf-8")
     document = document_for(raw, git("rev-parse", "HEAD"))
     output.write_text(json.dumps(document, indent=2) + "\n", encoding="utf-8")
-    validate_document(document, output)
+    validate_document(document, output, mode=FRESH_MODE)
     for item in document["result"]["perf"]["batch_results"]:
         print(f"batch={item['batch_size']} direct4/direct0={item['direct4_to_direct0_packet_rate_ratio']:.6f} pass=true")
 
@@ -397,6 +473,11 @@ def mutate_raw(document: dict[str, Any], pattern: str, replacement: Any) -> None
 def self_test() -> None:
     document = document_for(synthetic_raw(), git("rev-parse", "HEAD"), source_from_worktree=True)
     mutations = {
+        "commit": lambda item: (
+            item.__setitem__("git_commit", RETAINED_SOURCE_COMMIT),
+            item["application"]["resources"].__setitem__("source_commit", RETAINED_SOURCE_COMMIT),
+            item["application"]["resources"].__setitem__("source_tree", RETAINED_SOURCE_TREE),
+        ),
         "raw-hash": lambda item: item["application"]["resources"].__setitem__("raw_output_sha256", "0" * 64),
         "tree": lambda item: item["application"]["resources"].__setitem__("source_tree", "0" * 40),
         "generation": lambda item: item["application"].__setitem__("generation_digest", "0" * 64),
@@ -420,27 +501,68 @@ def self_test() -> None:
         directory = pathlib.Path(raw_dir)
         valid = directory / "valid.json"
         valid.write_text(json.dumps(document), encoding="utf-8")
-        validate_document(document, valid, source_from_worktree=True)
+        validate_document(document, valid, source_from_worktree=True, mode=FRESH_MODE)
         for name, mutate in mutations.items():
             forged = copy.deepcopy(document)
             mutate(forged)
             path = directory / f"{name}.json"
             path.write_text(json.dumps(forged), encoding="utf-8")
             try:
-                validate_document(forged, path, check_schema=False, source_from_worktree=True)
+                validate_document(forged, path, check_schema=False, source_from_worktree=True, mode=FRESH_MODE)
             except ValueError:
                 continue
             raise SystemExit(f"negative control accepted forged {name} evidence")
-    print(f"M3 benchmark validator negative controls passed: {len(mutations)}")
+
+        retained = json.loads(EVIDENCE.read_text(encoding="utf-8"))
+        validate_document(retained, EVIDENCE, mode=RETAINED_MODE)
+        if retained_topology(PRE_SQUASH_TIP) != "pre-squash-branch":
+            raise SystemExit("positive control rejected accepted pre-squash topology")
+        if retained_topology(SQUASH_COMMIT) != "integrated-main":
+            raise SystemExit("positive control rejected accepted integrated topology")
+        try:
+            retained_topology("8da41e27b385fd07f703a9f03c2de2ae38b0e696")
+        except ValueError:
+            pass
+        else:
+            raise SystemExit("negative control accepted forged retained topology")
+
+        retained_mutations = {
+            "retained-source": lambda item: (
+                item.__setitem__("git_commit", FINAL_GATE_COMMIT),
+                item["application"]["resources"].__setitem__("source_commit", FINAL_GATE_COMMIT),
+                item["application"]["resources"].__setitem__("source_tree", FINAL_GATE_TREE),
+            ),
+            "retained-self-path": lambda item: next(
+                source for source in item["application"]["resources"]["sources"]
+                if source["path"] == "tools/m3/benchmark-evidence.py"
+            ).__setitem__("sha256", "0" * 64),
+            "retained-statistics": lambda item: item["result"]["perf"]["batch_results"][0].__setitem__(
+                "direct4_to_direct0_packet_rate_ratio", 99
+            ),
+        }
+        for name, mutate in retained_mutations.items():
+            forged = copy.deepcopy(retained)
+            mutate(forged)
+            path = directory / f"{name}.json"
+            path.write_text(json.dumps(forged), encoding="utf-8")
+            try:
+                validate_document(forged, path, check_schema=False, mode=RETAINED_MODE)
+            except ValueError:
+                continue
+            raise SystemExit(f"negative control accepted forged {name} evidence")
+    print(
+        "M3 benchmark validator passed fresh/retained positive controls and "
+        f"{len(mutations) + len(retained_mutations) + 1} negative controls"
+    )
 
 
 def validate(path: pathlib.Path) -> None:
     document = json.loads(path.read_text(encoding="utf-8"))
     try:
-        validate_document(document, path)
+        validate_document(document, path, mode=RETAINED_MODE)
     except (KeyError, TypeError, ValueError) as error:
         raise SystemExit(f"M3 retained benchmark evidence failed: {error}") from error
-    print("M3 retained benchmark evidence passed")
+    print("M3 retained benchmark evidence passed: source/final-gate/pre-squash/squash anchors and HEAD topology")
 
 
 def main() -> None:
