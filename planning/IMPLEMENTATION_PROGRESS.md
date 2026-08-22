@@ -37,7 +37,7 @@ do not change milestone status.
 | M0-H - physical testbed contract | Not started | - | - | Deferred until hardware exists. |
 | M1 - foundation, ownership, and views | Complete | 2026-07-19 | 2026-07-29 | Independent review closure is recorded in [evidence/m1/REVIEW.md](../evidence/m1/REVIEW.md); the gate verifier reproduced both manifests, cumulative CI, and diff checks as recorded in `evidence/m1/VERIFICATION.md`. |
 | M2 - parsing, dispositions, and mutation | Complete | 2026-08-02 | 2026-08-11 | All sixteen findings are closed. The mandatory post-High review and independent final exact-tree cumulative gate passed at `bf76210`/`b2609e0`; exact evidence is recorded in `evidence/m2/`. |
-| M3 - native processor contract and static pipeline | Complete | 2026-08-13 | 2026-08-23 | All findings through M3-INTEGRATION-001 are closed. The mandatory fresh review and independent final exact-tree retry passed and main accepted M3 at `9c008e5`/`18d2c7d`; independent squash-bridge closure passed at `a6302e3`/`7e26c7c`. Local integration remains incomplete. Exact evidence is recorded in `evidence/m3/`. |
+| M3 - native processor contract and static pipeline | Complete | 2026-08-13 | 2026-08-23 | All findings through M3-INTEGRATION-001 are closed. The mandatory fresh review and independent final exact-tree retry passed; the corrected bridge gate passed at `dafe32b`/`b545c78`, local integration passed at `6190d70`/`b545c78`, and the exact milestone branch was deleted. Exact evidence is recorded in `evidence/m3/`. |
 | M4 - DPDK adapter and physical ownership loop | Not started | - | - | Requires M0-H. |
 | M5 - worker runtime and core metrics | Not started | - | - | - |
 | M6 - generation update and QSBR | Not started | - | - | - |
@@ -156,14 +156,18 @@ Evidence:
       pass; main-session acceptance is recorded.
 - [x] Post-acceptance M3-INTEGRATION-001 is independently closed at exact
       clean non-WIP tip/tree `a6302e3`/`7e26c7c`.
-- [ ] The corrected branch is re-integrated and the post-integration exact-tree
-      cumulative gate passes.
+- [x] The corrected branch is integrated at validated main
+      `6190d70`/`b545c78`; the post-integration exact-tree cumulative gate
+      passes and the exact local milestone branch is deleted.
 
 Evidence:
 
 - Commands: focused remediation, exact reviewer acknowledgment,
   current-source capture, and the latest 463.24-second cumulative
-  writer gate are recorded in `evidence/m3/VERIFICATION.md`.
+  writer gate are recorded in `evidence/m3/VERIFICATION.md`. The accepted
+  corrected bridge gate and approximately 298-second post-integration
+  cumulative gate are recorded there with exact commit/tree and deletion
+  evidence.
 - Requirement/test mapping: 51 exact cumulative claims in validated
   `docs/requirements/coverage.yaml`, with 27 M3 claims and preserved M1/M2
   provenance.
@@ -180,16 +184,13 @@ Evidence:
   variant, and passes ratios 0.994024/0.998583 at batches 32/64.
 - Known limitations: synthetic/virtual host-local regression only; AArch64 is
   build-tested; live update/observability, sources, production adapters, and
-  policy execution remain out of scope. M3 is accepted, but local integration
-  remains incomplete pending corrected re-integration and a passing
-  post-integration cumulative gate. M0-H is mandatory before M4, which remains
-  Not started.
+  policy execution remain out of scope. M3 is accepted and locally integrated.
+  M0-H is mandatory before M4, which remains Not started.
 
 ## Active blockers
 
-No M3 finding remains open. Corrected local re-integration and its cumulative
-gate remain pending. M0-H and later physical work are deferred dependencies,
-not blockers for accepted M0-V through M3.
+None. M0-H and later physical work are deferred dependencies, not blockers for
+accepted and locally integrated M0-V through M3.
 
 ## Decision and exception log
 
@@ -230,5 +231,6 @@ ledger status. Keep command output in test/benchmark artifacts, not pasted here.
 | 2026-08-22 | M3 | Recorded `m3_resource_review` closure of M3-FRESH2-001 and renewed authority-inventory acknowledgment at source `8828ab7`/tree `ad390d9`, then retained and committed the reviewed current-source benchmark artifact. | Artifact commit `53b6c63` binds post-acknowledgment source `075b3f7`/tree `204d23d`, has SHA-256 `1073d68dea8bd43476d3f9122b8df265f0a11208540c9d1e08f57351dc7e50d2`, preserves seven independent runs and 35 samples per variant, and passes ratios 0.990147/0.998627. Schemas, retained validation, ten negatives, and cumulative `zig build ci` pass; CI took approximately 399 seconds and its fresh ratios were 0.996907/0.997095. | Run the mandatory post-High fresh full-diff review, then the independent final exact-tree gate. Keep M3 In progress; do not integrate or begin M4. |
 | 2026-08-23 | M3 | Recorded `m3_api_review` closure of M3-FINAL-001 and exact-context authority-inventory acknowledgment at source `1dd6614`/tree `11d25fb`, then retained and committed the reviewed current-source benchmark artifact. | Closure commit `332aa44` is evidence-only. Artifact commit `0613106` binds that closure tree, has SHA-256 `6437d1d35cf6f19603fbf6b54c5f8ff371e23a94ad8fdd5a06192639958b0cbf`, preserves seven independent runs and 35 samples per variant, and passes ratios 0.994024/0.998583. Schemas, retained validation, ten negatives, and cumulative `zig build ci` pass; CI took 463.24 seconds and its fresh ratios were 0.998523/0.995566. | Run the mandatory fresh full-diff review, then the independent final exact-tree gate. Keep M3 In progress; do not integrate or begin M4. |
 | 2026-08-23 | M3 | Accepted M3 after the mandatory fresh review and independent final exact-tree retry passed; `m3_final_gate` closed M3-GATE-001 and main accepted exact gate tip `9c008e5`/tree `18d2c7d`. | Both immutable manifests and canonical cumulative `nix develop --command zig build ci` passed; baseline-to-tip diff, unchanged commit/tree, clean ordinary status, retained artifact SHA `6437d1d35cf6f19603fbf6b54c5f8ff371e23a94ad8fdd5a06192639958b0cbf`, and accepted ratios 0.994024/0.998583 were verified from epoch 1787434127 through capture 1787434187. M3 status is Complete. | Do not activate M4. M0-H remains the mandatory predecessor and must be completed before M4; integration awaits separate main-session direction. |
-| 2026-08-23 | M3 | The first authorized local squash was tree-identical at `e140ed2`/`481e1e2`, but its post-integration canonical gate failed only when the retained validator required pre-squash source ancestry. M3-INTEGRATION-001 was opened and is addressed on retained `milestone/m3`; accepted M3 status is unchanged while local integration remains incomplete. | The failed gate ran approximately 413 seconds, passed all predecessors through the fresh M3 benchmark, and passed fresh ratios 0.996402/1.001114 before the deterministic retained-evidence failure. The bridge preserves exact source/final-gate/pre-squash/squash anchors, ancestry, tree identity, branch/main topology, recorded-source blobs, and all current non-validator source hashes. Focused retained/self-test/schema/coverage/version/docs/manifests/diff checks pass without artifact refresh; retained SHA remains `6437d1d35cf6f19603fbf6b54c5f8ff371e23a94ad8fdd5a06192639958b0cbf`. | Obtain independent closure of M3-INTEGRATION-001, then re-integrate the corrected exact branch and rerun the full post-integration commands. Do not delete the branch, begin M4, or mutate remotes. |
-| 2026-08-23 | M3 | Assigned independent reviewer `m3_squash_review` closed M3-INTEGRATION-001 at exact clean non-WIP tip `a6302e3`/tree `7e26c7c` with no new material finding. | The reviewer confirmed source-to-gate-to-pre-squash ancestry, pre-squash/squash tree identity, all 13 bound paths across anchors and current non-validator bytes including `build.zig`, and hostile-probe rejection. Focused retained/fresh/self-test/schema/coverage/version/docs/manifests/Python/diff/status evidence passed; retained artifact SHA remains `6437d1d35cf6f19603fbf6b54c5f8ff371e23a94ad8fdd5a06192639958b0cbf`. The full exact-tree gate is unlocked. | Re-integrate the exact corrected branch and run the full post-integration commands. Local integration remains incomplete; do not delete the branch, begin M4, or mutate remotes. |
+| 2026-08-23 | M3 | The first authorized local squash was tree-identical at `e140ed2`/`481e1e2`, but its post-integration canonical gate failed only when the retained validator required pre-squash source ancestry. M3-INTEGRATION-001 was opened and addressed on retained `milestone/m3`; accepted M3 status was unchanged and integration was incomplete at this checkpoint. | The failed gate ran approximately 413 seconds, passed all predecessors through the fresh M3 benchmark, and passed fresh ratios 0.996402/1.001114 before the deterministic retained-evidence failure. The bridge preserves exact source/final-gate/pre-squash/squash anchors, ancestry, tree identity, branch/main topology, recorded-source blobs, and all current non-validator source hashes. Focused retained/self-test/schema/coverage/version/docs/manifests/diff checks passed without artifact refresh; retained SHA remained `6437d1d35cf6f19603fbf6b54c5f8ff371e23a94ad8fdd5a06192639958b0cbf`. | Obtain independent closure of M3-INTEGRATION-001, then re-integrate the corrected exact branch and rerun the full post-integration commands. Do not delete the branch, begin M4, or mutate remotes. |
+| 2026-08-23 | M3 | Assigned independent reviewer `m3_squash_review` closed M3-INTEGRATION-001 at exact clean non-WIP tip `a6302e3`/tree `7e26c7c` with no new material finding. | The reviewer confirmed source-to-gate-to-pre-squash ancestry, pre-squash/squash tree identity, all 13 bound paths across anchors and current non-validator bytes including `build.zig`, and hostile-probe rejection. Focused retained/fresh/self-test/schema/coverage/version/docs/manifests/Python/diff/status evidence passed; retained artifact SHA remained `6437d1d35cf6f19603fbf6b54c5f8ff371e23a94ad8fdd5a06192639958b0cbf`. The full exact-tree gate was unlocked. | Re-integrate the exact corrected branch and run the full post-integration commands. At this checkpoint integration had not yet been retried; do not begin M4 or mutate remotes. |
+| 2026-08-23 | M3 | Accepted the corrected bridge exact-tree gate at `dafe32b`/`b545c78`, integrated its reviewed commits with provenance as `e10c409` then `6190d70`, passed the post-integration gate, and deleted only the exact local `milestone/m3` branch under direct user authorization. | Main and branch trees were identical at `b545c78` before deletion. Both manifests, canonical cumulative CI, baseline diff, unchanged main commit/tree, clean ordinary status, and allowed ignored status passed. CI took approximately 298 seconds and fresh ratios passed at 1.006297/0.993592; retained artifact SHA remained `6437d1d35cf6f19603fbf6b54c5f8ff371e23a94ad8fdd5a06192639958b0cbf`. Main remained unchanged after exact local branch deletion; no remote mutation occurred. | M3 is complete and locally integrated. Do not activate M4 until mandatory M0-H is complete. |

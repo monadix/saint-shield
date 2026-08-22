@@ -2,8 +2,8 @@
 
 Date opened: 2026-08-13
 
-Milestone status: Complete; M3-INTEGRATION-001 is independently closed and
-local integration remains incomplete
+Milestone status: Complete; all findings are closed and corrected local
+integration is accepted
 
 Scope: hardware-free M3 native processor contract, static pipeline, public
 synthetic harness, and deterministic example
@@ -958,5 +958,21 @@ gate evidence are recorded in `evidence/m3/VERIFICATION.md`.
   artifact remained SHA-256
   `6437d1d35cf6f19603fbf6b54c5f8ff371e23a94ad8fdd5a06192639958b0cbf`.
   No new material finding was reported, and the full exact-tree gate is
-  unlocked. M3 remains accepted; local integration remains incomplete until
-  corrected re-integration and the post-integration cumulative gate pass.
+  unlocked.
+- Integration result: the main session accepted the corrected exact-tree bridge
+  gate at `dafe32b091114557e53590cea598bf71d8512c89`, tree
+  `b545c78ea66b714ac6f7e92d84475d0fff433e4f`. With direct user authorization,
+  the sole writer cherry-picked reviewed bridge commit `a6302e3` as
+  `e10c409056c158649c1541bca3221683100fbffd`, then closure-only commit
+  `dafe32b` as `6190d707cfb12ebff23803551a72b84dbc5061eb`, both with provenance.
+  Integrated `main` and the retained milestone branch had identical tree
+  `b545c78ea66b714ac6f7e92d84475d0fff433e4f`. Both immutable manifests,
+  canonical cumulative CI, baseline diff, unchanged commit/tree, and clean
+  ordinary status passed after the identical CI command was narrowly retried
+  for the known sandbox-only Nix fetcher lock. The observed CI duration was
+  approximately 298 seconds; fresh direct4/direct0 ratios passed at `1.006297`
+  for batch 32 and `0.993592` for batch 64. Retained artifact SHA-256 remained
+  `6437d1d35cf6f19603fbf6b54c5f8ff371e23a94ad8fdd5a06192639958b0cbf`.
+  After that proof, the user-authorized exact local `milestone/m3` branch was
+  deleted; `main` remained unchanged, ordinary status remained clean, and no
+  remote mutation occurred. M3 local integration is complete.

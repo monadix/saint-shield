@@ -5,12 +5,13 @@ Date: 2026-08-23
 Scope: hardware-free native processor contract, static pipeline, public
 synthetic harness, deterministic example, and host-local dispatch regression
 
-Status: Complete. All review findings through M3-GATE-001 are closed, the
+Status: Complete and locally integrated. All review findings are closed, the
 exact-context authority-return inventory is acknowledged, the current-source
 retained benchmark passes, the independent final exact-tree retry passed, and
 the main session accepted M3 at exact gate tip/tree `9c008e5`/`18d2c7d`.
-Post-acceptance M3-INTEGRATION-001 is independently closed at exact tip/tree
-`a6302e3`/`7e26c7c`; local squash integration is incomplete.
+Post-acceptance M3-INTEGRATION-001 is independently closed, its corrected
+exact-tree gate passed at `dafe32b`/`b545c78`, and validated local integration
+completed at `6190d70`/`b545c78` before exact branch deletion.
 
 Environment label: synthetic/virtual regression only; no production-capacity
 claim
@@ -622,6 +623,49 @@ with narrowly scoped execution outside that cache restriction. This checkpoint
 does not run cumulative CI, retry integration, close the finding, or authorize
 branch deletion.
 
+## Accepted corrected bridge gate and local integration
+
+The main session accepted the corrected exact-tree bridge gate at clean non-WIP
+`milestone/m3` tip `dafe32b091114557e53590cea598bf71d8512c89`, tree
+`b545c78ea66b714ac6f7e92d84475d0fff433e4f`, after `m3_final_gate` passed
+unchanged commit/tree, both manifests, canonical cumulative CI, baseline diff,
+and status checks. M3-INTEGRATION-001 was already independently closed with no
+new finding, so the full integration lifecycle was unlocked.
+
+With direct user authorization, the sole writer switched from that exact clean
+branch to unchanged local squash `main` `e140ed2`/`481e1e2` and cherry-picked
+the reviewed commits in order with provenance:
+
+- bridge commit `a6302e3` became
+  `e10c409056c158649c1541bca3221683100fbffd`, tree `7e26c7c`;
+- closure-only commit `dafe32b` became
+  `6190d707cfb12ebff23803551a72b84dbc5061eb`, tree `b545c78`.
+
+There were no conflicts, rewrites, amendments, or new content. Integrated
+`main` and retained `milestone/m3` were byte-identical at tree
+`b545c78ea66b714ac6f7e92d84475d0fff433e4f`. Post-integration verification
+passed both immutable manifests, canonical
+`nix develop --command zig build ci`, and
+`git diff --check 8da41e27b385fd07f703a9f03c2de2ae38b0e696..HEAD`.
+The initial sandboxed CI invocation encountered only the known read-only Nix
+fetcher lock; the identical command passed with narrowly scoped cache access.
+Observed CI wall time was approximately 298 seconds. Fresh direct4/direct0
+packet-rate ratios passed PERF-CORE-001 at `1.006297` for batch 32 and
+`0.993592` for batch 64. Retained evidence passed the integrated-main topology,
+and artifact SHA-256 remained
+`6437d1d35cf6f19603fbf6b54c5f8ff371e23a94ad8fdd5a06192639958b0cbf`.
+Main commit/tree remained exactly `6190d70`/`b545c78` throughout validation;
+ordinary status was clean and ignored paths were limited to `.zig-cache/`,
+`zig-out/`, and M1/M2/M3 Python bytecode caches.
+
+After the passing proof, direct user authorization activated the conditional
+deletion. The sole writer re-proved exact main/branch tree identity and clean
+status, then force-deleted only local `milestone/m3` at `dafe32b`; local `main`
+remained `6190d70`/`b545c78`, the artifact remained unchanged, and no remote
+mutation occurred. This acceptance-only record changes no product, tool, build,
+schema, artifact, specification, authority surface, or gate input and therefore
+does not require another cumulative CI run.
+
 ## Findings and limitations
 
 - All original API, resource, performance, M3-FRESH-001/002, M3-FRESH2-001,
@@ -645,6 +689,6 @@ branch deletion.
   independent final clean committed exact-tree verification, and main-session
   acceptance pass. The first local squash is tree-identical but its
   post-integration gate failed at the pre-bridge retained ancestry check;
-  M3-INTEGRATION-001 is closed, while integration remains incomplete pending
-  corrected re-integration and a full post-integration gate. M0-H remains
-  mandatory before M4 can begin.
+  M3-INTEGRATION-001 is closed, the corrected exact-tree gate and local
+  integration pass, and the exact local milestone branch is deleted. M0-H
+  remains mandatory before M4 can begin.
