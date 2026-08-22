@@ -12,6 +12,7 @@ retrospective; the old IDs remain as cross-references.
 - Assigned implementer: `fast_implementer`
 - Severity: Medium
 - Status progression: `open` -> `addressed` -> `closed`
+- Current status: `closed`
 - Affected workflow: review-evidence completeness
 - Observed issue: compacting the M1 ledger initially left no detailed closure
   register; the first retrospective register then omitted transactional
@@ -305,8 +306,15 @@ retained as an unnumbered audit note rather than a process finding.
   scope audits, docs-check, diff hygiene, and exact allowed-path review.
 - Addressing evidence: the listed governance surfaces now require the exact
   ordered envelope, clean-status invariants, read-only supplemental
-  diagnostics, and the narrow Nix retry exception. Status is addressed only;
-  the writer does not close the finding.
-- Closure pending: `proc_gov008_review` must independently recheck the
-  governance meaning and rerun the named focused checks before declaring this
-  finding closed. Main retains acceptance and progression authority.
+  diagnostics, and the narrow Nix retry exception. The writer recorded the
+  finding as addressed and did not close it.
+- Closure evidence: `proc_gov008_review` independently declared
+  `CLEAR/CLOSED` at commit `49d0edbe22d41bf3a8285e228db7ebaae8de51f8`, tree
+  `eb987267f51b80448eeb03185616a1e42857ec4c`, against baseline `8e4e2d27`.
+  The successor reviewed the complete one-commit five-path diff and confirmed
+  every immutable-envelope, evidence-mutation, status-invariant,
+  supplemental-diagnostic, stop/no-repair, Nix-retry, per-envelope-command,
+  and unchanged-authority requirement. TOML parsing, diff/forbidden-path
+  audit, clean-status, and the writer's 33-link docs-check evidence passed;
+  the tip and tree remained stable. No new finding was raised. This closure
+  is reviewer-owned; main retains process acceptance and progression authority.
