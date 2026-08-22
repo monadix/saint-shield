@@ -182,6 +182,23 @@ require a separately activated Lane 3 specification-maintenance session on
 The canonical workflow is in `.codex/AGENT_WORKFLOW.md`; it does not permit
 silent gate waivers, milestone-fact changes, or product implementation.
 
+### L-011: Immutable final-verifier command envelopes
+
+For independent final Lane 3 exact-tree verification, the main-selected
+envelope supplies the exact ordered commands, working directories, and
+arguments. Once verification starts, the verifier cannot add, omit, replace,
+reorder, or semantically alter them; a change requires a new envelope and
+clean restart. Commands remain milestone-specific. Commands cannot generate,
+refresh, or retain tracked evidence, though they may validate retained
+evidence read-only. Ordinary status must remain clean and no new non-ignored
+state may appear; only declared ignored caches/temp may change, with status
+recorded before and after. Supplemental diagnostics are labeled non-gate,
+provably read-only, immediately bracketed by commit/tree and both statuses,
+and cannot substitute. Uncertain or mutating diagnostics stop for main.
+Only the recognized Nix sandbox/user-cache fetcher-lock exception permits an
+identical-command retry with narrow cache authorization and recorded first
+failure. Acceptance and finding authority are unchanged.
+
 ## M0-V through M3 implementation contract
 
 ### M0-V: reproducible virtual foundation

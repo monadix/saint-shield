@@ -174,6 +174,21 @@ Use focused affected checks while iterating. Lane 3 runs one final exact-tree
 full milestone gate after blocking findings close and repeats it after any
 corrective tree change. Acceptance-only wording after a passing gate needs
 focused documentation/schema/link/diff checks unless a gate input changed.
+For an independent final Lane 3 exact-tree verification, the main-selected
+envelope is the immutable, exact ordered command sequence, including working
+directories and arguments. Once verification begins, the verifier may not
+add, omit, replace, reorder, or semantically alter a command; any change
+requires a new envelope and clean restart. Commands remain
+milestone/envelope-specific. The envelope must preserve ordinary clean status
+and no new non-ignored state; only declared ignored caches or temporary files
+may change, with ignored status recorded before and after. A verifier reports
+any ordinary status change and never repairs it. Supplemental diagnostics are
+labeled non-gate, provably read-only, immediately bracketed by commit/tree and
+ordinary/ignored status, and cannot substitute for the selected commands.
+Only the recognized Nix sandbox/user-cache fetcher-lock exception permits a
+retry of the identical command with narrow cache authorization and recorded
+first failure; other wrappers, arguments, targets, or semantic failures stop
+for main direction.
 Continuously cover Debug and ReleaseSafe; milestone exits also cover
 ReleaseFast. Randomized failures print a seed and minimized trace;
 constructor/preparation paths include allocation-failure and cleanup evidence.

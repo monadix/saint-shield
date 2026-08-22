@@ -258,6 +258,33 @@ The final verifier requires a clean committed non-WIP tip, records commit and
 tree IDs before and after the gate, and rejects any change. Gate corrections
 are new commits and repeat the full exact-tree gate.
 
+### Final verifier command envelope
+
+For each independent final Lane 3 exact-tree verification, the main-selected
+task envelope supplies one exact ordered command sequence, including each
+working directory and argument. Once verification begins, the verifier must
+execute that sequence as written and may not add, omit, replace, reorder, or
+semantically alter a command. Any command change requires a new main-selected
+envelope and a clean restart; commands remain milestone- and envelope-
+specific, not a universal gate.
+
+The selected commands must not generate, refresh, or retain tracked evidence.
+They may perform read-only validation of already-retained evidence. The
+verifier records ordinary and ignored status before and after. Ordinary status
+must remain clean and no new non-ignored state may appear; only envelope-
+declared ignored caches or temporary files may change. Any ordinary status
+change fails the attempt; the verifier reports it and never repairs it.
+
+Supplemental diagnostics must be labeled non-gate, be provably read-only, and
+cannot substitute for a selected command. Each is immediately bracketed by
+commit/tree IDs and ordinary plus ignored status. An uncertain or potentially
+mutating diagnostic stops for main direction. The only retry exception is a
+recognized Nix sandbox or user-cache fetcher-lock failure: rerun the identical
+command with narrow cache authorization, recording the first environmental
+failure. Different wrappers, arguments, targets, or semantic failures stop
+for main direction. This contract preserves existing acceptance and finding
+authority.
+
 After main accepts:
 
 1. The writer commits permitted acceptance-only evidence/ledger wording.

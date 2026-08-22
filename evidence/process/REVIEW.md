@@ -266,3 +266,47 @@ retrospective; the old IDs remain as cross-references.
 The trailing whitespace formerly recorded as `M1-GATE-002` was removed and
 the discovering verifier reported the workflow-only gate acceptable. It is
 retained as an unnumbered audit note rather than a process finding.
+
+## PROC-GOV-008: Mutable final-verifier command envelope
+
+- Discoverer: `process_reviewer`
+- Successor closure authority: `proc_gov008_review`
+- Assigned implementer: `fast_implementer`
+- Severity: Medium
+- Status progression: `open` -> `addressed` -> `closed`
+- Affected workflow: independent final Lane 3 exact-tree verification
+- Concrete evidence: M3-GATE-001 included an extra
+  `nix develop --command python3 tools/m3/benchmark-gate.py --retain
+  bench/examples/benchmark.m3.json` invocation that deterministically dirtied
+  a tracked artifact and forced recovery and retry. This was process friction,
+  not a product failure.
+- Expected behavior: the main-selected envelope supplies one exact ordered
+  command sequence with working directories and arguments; after verification
+  starts, the verifier cannot add, omit, replace, reorder, or semantically
+  alter commands. A changed sequence requires a new envelope and clean
+  restart. Commands remain envelope-specific and cannot generate, refresh, or
+  retain tracked evidence; retained evidence may be validated read-only.
+  Ordinary status stays clean, no new non-ignored state appears, and only
+  declared ignored caches/temp may change. Supplemental diagnostics are
+  labeled non-gate, provably read-only, status/tree bracketed, and cannot
+  substitute. The recognized Nix sandbox/user-cache fetcher-lock exception
+  permits only an identical-command retry with narrow cache authorization and
+  the first failure recorded. Acceptance and finding authority are unchanged.
+- Observed behavior: the additional retain command was outside the selected
+  sequence and changed tracked state, requiring recovery before the gate could
+  proceed.
+- Reproduction: run the M3-GATE-001 selected sequence and then the extra
+  benchmark retain command above; inspect ordinary status before and after.
+- Failing layer: process envelope definition and verifier command discipline;
+  no product, milestone acceptance, or required gate command changed.
+- Bounded remediation/rechecks: add the immutable command-envelope contract
+  to `AGENTS.md`, `.codex/AGENT_WORKFLOW.md`, `gate_verifier.toml`, and L-011;
+  retain this register entry; run strict TOML parsing, semantic authority and
+  scope audits, docs-check, diff hygiene, and exact allowed-path review.
+- Addressing evidence: the listed governance surfaces now require the exact
+  ordered envelope, clean-status invariants, read-only supplemental
+  diagnostics, and the narrow Nix retry exception. Status is addressed only;
+  the writer does not close the finding.
+- Closure pending: `proc_gov008_review` must independently recheck the
+  governance meaning and rerun the named focused checks before declaring this
+  finding closed. Main retains acceptance and progression authority.
